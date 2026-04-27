@@ -30,7 +30,7 @@ A [PixInsight](https://pixinsight.com/) script that removes satellite trails fro
 
 ## Installation
 
-1. Download `DeSatellite100.js`
+1. Download this script
 2. In PixInsight, open **Script → Feature Scripts...**
 3. Click **Add** and navigate to the folder containing the script
 4. Click **Done** — DeSatellite will appear under **Script → Utilities → DeSatellite**
