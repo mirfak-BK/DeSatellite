@@ -5,7 +5,7 @@
          DeSatellite Script Repository
       </p>
    </description>
-   <platform name="all">
+     <platform name="all" os="all">
       <package bundle="DeSatellite-20240428.zip"
                version="1.0.0"
                fileName="DeSatellite-20240428.zip"
