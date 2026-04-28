@@ -15,7 +15,7 @@
          </description>
          <distribution platform="all">
             <file name="DeSatellite-20240428.zip" 
-                  sha1="[5c97fb960321812f10c95a9d2252660e09386368]" />
+                  sha1="5c97fb960321812f10c95a9d2252660e09386368" />
          </distribution>
       </package>
    </repository>
