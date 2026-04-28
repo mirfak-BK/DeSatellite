@@ -5,7 +5,7 @@
         Repository for DeSatellite by Bunkei Kidani (mirfak-BK)
       </p>
    </description>
-   <platform os="all">
+   <platform os="all" arch="noarch" version="1.8.9:1.9.99">
       <package fileName="DeSatellite-20240428.zip" sha1="5c97fb960321812f10c95a9d2252660e09386368"
                type="script" releaseDate="20260428">
          <title>
