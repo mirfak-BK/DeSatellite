@@ -2,21 +2,19 @@
 <xri version="1.0">
    <description>
       <p>
-      DeSatellite Script Repository
+        Repository for DeSatellite by Bunkei Kidani (mirfak-BK)
       </p>
    </description>
-   <repository>
-      <package>
-         <title>DeSatellite</title>
-         <version>1.0.2</version> 
-         <releaseDate>2026-04-28</releaseDate>
+   <platform os="all">
+      <package fileName="DeSatellite-20240428.zip" sha1="5c97fb960321812f10c95a9d2252660e09386368"
+               type="script" releaseDate="20260428">
+         <title>
+            DeSatellite 1.0.2
+         </title>
          <description>
-            <p>First release</p>
+            <p> It helps you manually mask satellite trails by painting them black [RGB(0,0,0)] before stacking, ensuring they are properly rejected as outliers. It also features a "Reference Mode" to replace pixels using a reference image.</p>
+            <h3>Release 1.0.2</h3>
          </description>
-         <distribution platform="all">
-            <file name="DeSatellite-20240428.zip" 
-                  sha1="5c97fb960321812f10c95a9d2252660e09386368" />
-         </distribution>
       </package>
-   </repository>
+   </platform>
 </xri>
