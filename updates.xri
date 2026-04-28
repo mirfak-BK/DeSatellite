@@ -2,24 +2,21 @@
 <xri version="1.0">
    <description>
       <p>
-         DeSatellite Script Repository
+      DeSatellite Script Repository
       </p>
    </description>
-     <platform name="all" os="all">
-      <package bundle="DeSatellite-20240428.zip"
-               version="1.0.0"
-               fileName="DeSatellite-20240428.zip"
-               sha1="[5c97fb960321812f10c95a9d2252660e09386368]"
-               type="script"
-               releaseDate="20240428">
-         <title>
-            DeSatellite Script
-         </title>
+   <repository>
+      <package>
+         <title>DeSatellite</title>
+         <version>1.0.2</version> 
+         <releaseDate>2026-04-28</releaseDate>
          <description>
-            <p>
-               DeSatellite 1.0.2
-            </p>
+            <p>First release</p>
          </description>
+         <distribution platform="all">
+            <file name="DeSatellite-20240428.zip" 
+                  sha1="[5c97fb960321812f10c95a9d2252660e09386368]" />
+         </distribution>
       </package>
-   </platform>
+   </repository>
 </xri>
