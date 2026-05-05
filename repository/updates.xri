@@ -6,14 +6,14 @@
       </p>
    </description>
    <platform os="all" arch="noarch" version="1.8.9:1.9.99">
-      <package fileName="DeSatellite-20240428.zip" sha1="5c97fb960321812f10c95a9d2252660e09386368"
-               type="script" releaseDate="20260428">
+      <package fileName="DeSatellite-20260506.zip" sha512="484810647edc91ae148b5b363ab3f1166d1c9bc778a9ae9692028c4397b9db9721c08cc16ec2a98320876d76f4779d10389a1cdc01826c0e2d1495ee1b0b7c24"
+               type="script" releaseDate="20260506">
          <title>
-            DeSatellite 1.0.2
+            DeSatellite 1.0.3
          </title>
          <description>
             <p> It helps you manually mask satellite trails by painting them black [RGB(0,0,0)] before stacking, ensuring they are properly rejected as outliers. It also features a "Reference Mode" to replace pixels using a reference image.</p>
-            <h3>Release 1.0.2</h3>
+            <h3>Release 1.0.3</h3>
          </description>
       </package>
    </platform>
