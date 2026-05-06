@@ -46,7 +46,7 @@
 #include <pjsr/StdCursor.jsh>
 #include <pjsr/PenStyle.jsh>
 
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 #define DEFAULT_AUTOSTRETCH_SCLIP -2.80
 // Target mean background in the [0,1] range.
 #define DEFAULT_AUTOSTRETCH_TBGND   0.25
@@ -1114,6 +1114,8 @@ function showDialog(initialWindow)
             dialog.t.reference = refView;
          }
 
+         if (drawTracksSized && dialog.t.updatePreviewWithReference)
+            dialog.t.updatePreviewWithReference();
          dialog.previewControl.forceRedraw();
          dialog.btnApply.enabled = true;
 
@@ -1138,6 +1140,9 @@ function showDialog(initialWindow)
       {
          Console.writeln('No reference image');
          dialog.t.reference = null;
+         if (drawTracksSized && dialog.t.updatePreviewWithReference)
+            dialog.t.updatePreviewWithReference();
+         dialog.previewControl.forceRedraw();
          return;
       }
 
@@ -1206,6 +1211,8 @@ function showDialog(initialWindow)
          }
 
          dialog.t.setReference( view );
+         if (drawTracksSized && dialog.t.updatePreviewWithReference)
+            dialog.t.updatePreviewWithReference();
          dialog.previewControl.forceRedraw();
          // ローカル selectedTrack を Tracks 側の現在選択と同期する。
          // null で潰すと、ターゲット直後に自動作成された空トラックの選択が
@@ -1892,17 +1899,6 @@ this.workspaceViewList = new ComboBox(this);
 
          if (!targetWnd) return;
 
-         // 変更保存確認
-         if (dialog.t != null && dialog.t.Tracks != null &&
-             dialog.t.Tracks.count() > 0 && !dialog.t.Tracks.saved)
-         {
-            var msg = new MessageBox("現在の変更を保存しますか？",
-                                     '変更があります',
-                                     StdIcon_Question, StdButton_Yes, StdButton_No);
-            if (msg.execute() == StdButton_Yes)
-               save(dialog);
-         }
-
          dialog.t = new viewsSetup(dialog, targetWnd, dialog.previewControl);
          checkReference();
          dialog.windowTitle = TITLE + ' - ' + targetWnd.mainView.id;
@@ -1970,6 +1966,9 @@ this.workspaceViewList = new ComboBox(this);
       if (dialog.t && dialog.t.Tracks)
       {
          dialog.t.Tracks.setLineWidth(1);
+         // Preview チェックが ON のときはビットマップを再生成して線幅変更を即反映
+         if (drawTracksSized && dialog.t.updatePreviewWithReference)
+            dialog.t.updatePreviewWithReference();
          dialog.previewControl.forceRedraw();
       }
    };
@@ -2273,7 +2272,7 @@ this.workspaceViewList = new ComboBox(this);
                var metadata = (dialog.t && dialog.t.metadata)
                   ? dialog.t.metadata
                   : new Size(refBitmap);
-               dialog.previewControl.SetImage(refBitmap, metadata);
+               dialog.previewControl.SetImage(refBitmap, metadata, dialog.previewControl.zoom);
                dialog.previewControl.forceRedraw();
             }
             catch (ex)
@@ -3064,11 +3063,8 @@ function save(dialog)
          Console.writeln('\nFill track(s) with pixels from a reference frame');
          Console.writeln('=================================================\n');
 
-         var fittedReference = dialog.t.getFittedReference();
+         processImageWithMask(dialog.t.view, dialog.t.reference, mask);
 
-         processImageWithMask(dialog.t.view, fittedReference, mask);
-
-         dialog.t.clearFittedReference();
          Console.writeln('Pixel from reference image merged');
       }
       else
@@ -3281,7 +3277,7 @@ function viewsSetup(dialog, Window, previewControl)
          }
          gc3.end();
 
-         previewControl.SetImage(resultBitmap, this.metadata);
+         previewControl.SetImage(resultBitmap, this.metadata, previewControl.zoom);
          return;
       }
 
@@ -3332,18 +3328,18 @@ function viewsSetup(dialog, Window, previewControl)
             }
          }
 
-         previewControl.SetImage(resultBitmap, this.metadata);
+         previewControl.SetImage(resultBitmap, this.metadata, previewControl.zoom);
       }
       catch (ex)
       {
          Console.writeln('Preview with reference failed: ' + ex);
-         previewControl.SetImage(this.originalBitmap, this.metadata);
+         previewControl.SetImage(this.originalBitmap, this.metadata, previewControl.zoom);
       }
     }
 
    this.restoreOriginalPreview = function()
    {
-      previewControl.SetImage(this.originalBitmap, this.metadata);
+      previewControl.SetImage(this.originalBitmap, this.metadata, previewControl.zoom);
    }
 
    // AutoStretch の切替などで、トラック・参照・ズーム倍率を保持したまま
@@ -3997,7 +3993,10 @@ function PreviewControl( parent )
    this.scrollbox.viewport.onMouseWheel = function( x, y, delta, buttonState, modifiers )
    {
       let preview = this.parent.parent;
-      preview.UpdateZoom( preview.zoom + ((delta > 0) ? -1 : 1), new Point( x, y ) );
+      // Ctrl/⌘ + ホイール (またはトラックパッドのピンチジェスチャ) のみズーム。
+      // 修飾キーなしのホイールは誤操作防止のため無視する。
+      if (modifiers & KeyModifier_Control)
+         preview.UpdateZoom( preview.zoom + ((delta > 0) ? -1 : 1), new Point( x, y ) );
    };
 
    this.scrollbox.viewport.onMousePress = function( x, y, button, buttonState, modifiers )
