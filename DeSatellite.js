@@ -46,7 +46,7 @@
 #include <pjsr/StdCursor.jsh>
 #include <pjsr/PenStyle.jsh>
 
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 #define DEFAULT_AUTOSTRETCH_SCLIP -2.80
 // Target mean background in the [0,1] range.
 #define DEFAULT_AUTOSTRETCH_TBGND   0.25
@@ -386,7 +386,7 @@ function loadLang()
       if (v == 'en' || v == 'ja') return v;
    }
    catch (ex) { /* ignore */ }
-   return 'ja';
+   return 'en';
 }
 
 function saveLang(lang)
@@ -1344,14 +1344,16 @@ function showDialog(initialWindow)
 
       this.previewControl.onCustomPaint = function (graphics, x0, y0, x1, y1 )
       {
-         if (!drawTracksSized)
+         var showingReference = dialog.cbShowReference && dialog.cbShowReference.checked;
+         if (!drawTracksSized && !showingReference)
          {
-            // Previewチェックなし：通常の赤いマーカーとラインを描画
+            // Previewチェックなし・Referenceチェックなし：通常の赤いマーカーとラインを描画
             graphics.antialiasing = true;
             if (dialog.t && dialog.t.Tracks)
                dialog.t.Tracks.paintPreview(graphics, dialog.previewControl.scale);
          }
          // Previewチェックあり：ビットマップ自体が合成済みなので上書き描画しない
+         // Referenceチェックあり：リファレンス画像上にアンカー/ラインを描画しない
 
          // ====================== ルーペ (拡大鏡) 描画 ======================
          // PJSR に GraphicsPath が存在しないため、矩形 (正方形) ルーペで実装。
@@ -1407,7 +1409,7 @@ function showDialog(initialWindow)
                //    そのまま拡大した見た目)。
                //    第4引数で画像座標のペン幅を 2/(s*mag) に指定 → 画面上 2px。
                //    通常の cosmetic ペン (1px) の 2 倍の太さでルーペ内マーカーを描く。
-               if (!drawTracksSized && dialog.t && dialog.t.Tracks)
+               if (!drawTracksSized && !showingReference && dialog.t && dialog.t.Tracks)
                {
                   graphics.antialiasing = true;
                   dialog.t.Tracks.paintPreview(graphics, s, 1, 2 / (s * mag));
@@ -1490,6 +1492,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       useRichText = true;
       visible = false;
    }
@@ -1503,6 +1506,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text = "© 2026, B.Kidani ";
    }
@@ -1588,15 +1592,12 @@ function showDialog(initialWindow)
    }
 
    // 言語切替ボタン
-   // PixInsight 環境によっては :/icons/language.png 等の地球アイコンが存在せず
-   // 空ボタン化してしまうため、現在の言語 (JA / EN) をラベルとして表示する。
-   // text を見ればどちらが現在有効か一目で分かり、クリックで切り替わる。
+   // 現在の言語 (JA / EN) をラベルとして表示する。
    // 親を previewControl に設定して、previewControl.buttons_Box の右端に配置する。
    this.toolLang = new PushButton(this.previewControl);
    with (this.toolLang)
    {
       backgroundColor = 0xff555555;
-      foregroundColor = this.foregroundColor;
       font = this.font;
       text = (currentLang == 'ja') ? 'JA' : 'EN';
       toolTip = T("lang_tooltip");
@@ -1647,6 +1648,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/open.png');
       text = T("batch_queue_add");
@@ -1692,6 +1694,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/folder.png');
       text = T("output_folder");
@@ -1740,6 +1743,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text = T("suffix_label");
       // 右側の Edit ボックスに対して上辺に浮かないよう縦中央寄せ
@@ -1751,6 +1755,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = 0xff333333;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text = '_ds';
       setScaledFixedWidth(60);
@@ -1792,6 +1797,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/ok.png');
       text = T("save_and_next");
@@ -1809,6 +1815,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/arrow-right.png');
       text = T("skip_copy");
@@ -1825,6 +1832,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/delete.png');
       text = T("skip_no_copy");
@@ -1842,6 +1850,7 @@ function showDialog(initialWindow)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/process-interface/abort.png');
       text = T("batch_cancel");
@@ -1929,6 +1938,7 @@ this.workspaceViewList = new ComboBox(this);
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/add.png');
       text = T("add");
@@ -1979,6 +1989,7 @@ this.workspaceViewList = new ComboBox(this);
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text = T("line_width");
       textAlignment = TextAlign_Left | TextAlign_VertCenter;
@@ -2013,7 +2024,7 @@ this.workspaceViewList = new ComboBox(this);
    // 手動入力用 Edit ウィジェット
    this.editLineWidth = new Edit(this);
    this.editLineWidth.text = "10";
-   this.editLineWidth.setScaledFixedWidth(28);   // 元 42 の 2/3
+   this.editLineWidth.setScaledFixedWidth(28);
    this.editLineWidth.toolTip = T("line_width_edit_tip");
 
    this.editLineWidth.onEditCompleted = function ()
@@ -2032,6 +2043,7 @@ this.workspaceViewList = new ComboBox(this);
       backgroundColor = this.backgroundColor;
       enabled = false;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = this.scaledResource(':/icons/undo.png');
       text = T("undo");
@@ -2102,6 +2114,7 @@ this.workspaceViewList = new ComboBox(this);
       backgroundColor = this.backgroundColor;
       enabled = false;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       icon = iconEditOff;
       iconWidth = 16;
@@ -2166,6 +2179,7 @@ this.workspaceViewList = new ComboBox(this);
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text  = 'Preview';
       toolTip = T("preview_tip");
@@ -2196,12 +2210,13 @@ this.workspaceViewList = new ComboBox(this);
 
    // ====================== Reference 表示チェックボックス ======================
    // ON でリファレンス画像をプレビュー領域に表示。スクリプトを離れずに
-   // リファレンス画像の中身を確認できる。
+   // リファレンス画像の中身を確認
    this.cbShowReference = new CheckBox(this);
    with (this.cbShowReference)
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text     = T("reference_show");   // 「Reference」(日本語モードでも英語表記)
       toolTip  = T("reference_show_tip");
@@ -2299,6 +2314,7 @@ this.workspaceViewList = new ComboBox(this);
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       font = this.font;
       text  = 'Multi Point Mode (Curve)';
       checked = false;                    // The default is 2-point mode
@@ -2330,6 +2346,7 @@ this.workspaceViewList = new ComboBox(this);
    {
       backgroundColor = this.backgroundColor;
       foregroundColor = this.foregroundColor;
+
       enabled = false;
       font = this.font;
       icon = this.scaledResource(':/icons/ok.png');
@@ -2429,7 +2446,6 @@ this.workspaceViewList = new ComboBox(this);
          addStretch();
      }
    }
-   // frame4 と同じスタイル。Undo の真下に Edit ボタンを配置。
    this.frameEdit = new Frame(this);
    with (this.frameEdit)
    {
@@ -3159,71 +3175,11 @@ function viewsSetup(dialog, Window, previewControl)
       this.reference = view;
    }
 
-   this.getFittedReference = function ()
-   {
-      if (this.reference == null) return null;
-
-      if (fittedReference == null)
-      {
-         fittedReference = copyView(this.reference, '_reference');
-
-         try
-         {
-            var P = new LinearFit;
-            P.referenceViewId = this.editView.id;
-            P.rejectLow = 0.000000;
-            P.rejectHigh = 0.999;
-            P.executeOn(fittedReference);
-         }
-         catch (ex)
-         {
-            // LinearFit が失敗しても処理自体は続行可能だが、
-            // 輝度スケールが合わないと埋め込み部分に継ぎ目が出る可能性が高い。
-            // ユーザーに必ず通知する。
-            var msg = 'LinearFit failed: ' + (ex.message || ex);
-            Console.warningln(msg);
-            Console.warningln('Reference brightness will NOT be matched to the target. ' +
-               'Filled trail area may show visible seams.');
-            try
-            {
-               new MessageBox(
-                  "LinearFit (輝度合わせ) に失敗しました。\n\n" +
-                  "詳細: " + (ex.message || ex) + "\n\n" +
-                  "このまま続行すると、Reference 画像との輝度差により、\n" +
-                  "埋め込んだ軌跡部分に継ぎ目が見える可能性があります。\n" +
-                  "Reference 画像が同じ被写体・近いコンディションで\n" +
-                  "撮影されているか確認してください。",
-                  "LinearFit Warning",
-                  StdIcon_Warning, StdButton_Ok).execute();
-            }
-            catch (ex2)
-            {
-               // MessageBox 自体が失敗してもログは既に出ているので静かに続行
-            }
-         }
-      }
-      return fittedReference;
-   }
-
    this.clearReference = function ()
    {
-      if (fittedReference != null)
-      {
-         fittedReference.window.forceClose();
-         fittedReference = null;
-      }
       if (this.reference != null)
       {
          this.reference = null;
-      }
-   }
-
-   this.clearFittedReference = function ()
-   {
-      if (fittedReference != null)
-      {
-         fittedReference.window.forceClose();
-         fittedReference = null;
       }
    }
 
@@ -3233,8 +3189,6 @@ function viewsSetup(dialog, Window, previewControl)
    }
 
    this.reference = null;
-
-   var fittedReference = null;
 
    this.Tracks = new TrackCollection(new Rect(0, 0, this.bitmap.width, this.bitmap.height));
 
@@ -3814,6 +3768,7 @@ function PreviewControl( parent )
    this.cursorInImage      = false;   // imageRect 内にカーソルがあるか
    this.cursorWasInImage   = false;   // 画像読み込み後、一度でも画像内にカーソルが入ったか
                                       // (ターゲットを開いた直後の「画像端にいきなり十字が出る」現象を抑制)
+   this.pointerInViewport  = false;   // マウスが物理的にビューポート内にあるか (onLeave で false)
 
    this.SetImage = function( image, metadata, zoom )
    {
@@ -3939,6 +3894,13 @@ function PreviewControl( parent )
    {
       var preview = this.parent.parent;
       preview.loupeEnabled = checked;
+      // ルーペをOFFにした時点でマウスがビューポート外にある場合、
+      // cursorInside が true のまま残っていると十字が描画されてしまう。
+      // pointerInViewport (onLeave で false になる) を見てリセットする。
+      if ( !checked && !preview.pointerInViewport )
+      {
+         preview.cursorInside = false;
+      }
       preview.forceRedraw();
    };
 
@@ -3959,8 +3921,8 @@ function PreviewControl( parent )
    // つまみ (handle) に最小サイズを設定する。Qt のスタイルシート経由。
    // 端まで動かすのに必要なポインター移動量も短くする。
    this.scrollbox.styleSheet =
-      "QScrollBar::handle:horizontal { min-width: 90px; }" +
-      "QScrollBar::handle:vertical   { min-height: 90px; }";
+      "QScrollBar::handle:horizontal { min-width: 300px; }" +
+      "QScrollBar::handle:vertical   { min-height: 300px; }";
 
 
 
@@ -4052,10 +4014,11 @@ function PreviewControl( parent )
       // これにより画像端を超えた瞬間にルーペが消えず、画像端が境界線としてルーペ内に
       // 残るようになる。十字レチクルとクリック位置は画像端にクランプして使う。
       var inImage = preview.imageRect.includes(coordPx);
-      preview.cursorX       = coordPx.x;
-      preview.cursorY       = coordPx.y;
-      preview.cursorInside  = true;
-      preview.cursorInImage = inImage;
+      preview.cursorX          = coordPx.x;
+      preview.cursorY          = coordPx.y;
+      preview.cursorInside     = true;
+      preview.cursorInImage    = inImage;
+      preview.pointerInViewport = true;
       // 画像内に一度入ったらフラグを立てる。次に画像端を出てもルーペ/十字を維持。
       // ターゲットを開いた直後 (=フラグ false) はルーペ/十字を出さない。
       if (inImage)
@@ -4114,6 +4077,20 @@ function PreviewControl( parent )
       {
          var p =  preview.transform(x, y, preview);
          preview.onMouseRelease.call(this, p.x, p.y, button, buttonState, modifiers );
+      }
+   };
+
+   this.scrollbox.viewport.onLeave = function()
+   {
+      let preview = this.parent.parent;
+      preview.pointerInViewport = false;
+      // ルーペON時は、マウスがビューポートを出てもルーペ+内部の十字を
+      // 最後の位置に残す既存挙動を維持する (画像端アンカーの観察用)。
+      // ルーペOFF時はカーソル追従の十字を消す。
+      if ( !preview.loupeEnabled )
+      {
+         preview.cursorInside = false;
+         preview.forceRedraw();
       }
    };
 
@@ -4314,6 +4291,7 @@ function saveLangState(dialog)
    var state = {
       lineWidth:   dialog.lastValidLineWidth,
       suffix:      (dialog.editSuffix) ? dialog.editSuffix.text : '',
+      previewOn:   (dialog.cbDrawMode) ? dialog.cbDrawMode.checked : false,
       currentWnd:  null,
       tracks:      [],
       selectedIdx: -1,
@@ -4417,6 +4395,15 @@ function restoreLangState(dialog, state)
    dialog.btnSkipNext.enabled    = (outputFolder.length > 0);
    dialog.btnSkipNoSave.enabled  = (batchQueue.length > 0);
    dialog.btnCancelBatch.enabled = (batchQueue.length > 0);
+
+   // Preview チェックボックス状態を復元
+   if (state.previewOn && dialog.cbDrawMode)
+   {
+      dialog.cbDrawMode.checked = true;
+      drawTracksSized = true;
+      if (dialog.t && dialog.t.updatePreviewWithReference)
+         dialog.t.updatePreviewWithReference();
+   }
 
    dialog.previewControl.forceRedraw();
 }
