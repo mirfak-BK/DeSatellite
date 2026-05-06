@@ -30,6 +30,16 @@ A [PixInsight](https://pixinsight.com/) script that removes satellite trails fro
 
 ## Installation
 
+Option 1: Via PixInsight Repository (Recommended)
+
+1. In PixInsight, open **Resources > Updates > Manage Repositories**
+2. Click **Add** and enter:
+**https://raw.githubusercontent.com/mirfak-BK/DeSatellite/master/**
+3. Go to **Resources > Updates > Check for Updates**
+4. Select **DeSatellite** and click **Apply**
+
+Option 2: Manual installation
+
 1. Download this script
 2. In PixInsight, open **Script → Feature Scripts...**
 3. Click **Add** and navigate to the folder containing the script
