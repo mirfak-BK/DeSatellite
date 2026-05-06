@@ -6,7 +6,7 @@
       </p>
    </description>
    <platform os="all" arch="noarch" version="1.8.9:1.9.99">
-      <package fileName="DeSatellite-20260506.zip" sha1="f49256ae48e35bf831da32cd5e5d290789bee526"
+      <package fileName="DeSatellite_20260506.zip" sha1="f49256ae48e35bf831da32cd5e5d290789bee526"
                type="script" releaseDate="20260506">
          <title>
             DeSatellite 1.0.3
