@@ -46,7 +46,7 @@
 #include <pjsr/StdCursor.jsh>
 #include <pjsr/PenStyle.jsh>
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 #define DEFAULT_AUTOSTRETCH_SCLIP -2.80
 // Target mean background in the [0,1] range.
 #define DEFAULT_AUTOSTRETCH_TBGND   0.25
@@ -179,14 +179,20 @@ var LANG = {
       help_tooltip:
          '<p><b><font size="5">Satellite track removal</font></b><br></p>' +
          '<p><font size="4"><b>DeSatellite</b> usage summary:</font><br></p>' +
-         '<p>- <b>Open File</b>: opens an image file for processing</p>' +
-         '<p>- <b>Add</b>: inserts a new empty track in the collection</p>' +
-         '<p>- <b>Undo</b>: removes the last added point from the selected track</p>' +
-         '<p>- <b>Select a reference view (opt.)</b>: selection of a reference view</p>' +
-         '<p>&nbsp;&nbsp;The reference view is used to replace tracks with good pixels</p>' +
-         '<p>- <b>Line width</b>: determines the thickness of the painted tracks</p>' +
-         '<p>- <b>Preview</b>: checkbox toggles painting of tracks in the preview pane</p>' +
-         '<p>- <b>Apply</b>: paints the tracks on the current view<br></p>' +
+         '<p>- <b>Target image</b>: select or open the image to process</p>' +
+         '<p>- <b>Reference (optional)</b>: select a reference frame</p>' +
+         '<p>&nbsp;&nbsp;Track pixels are replaced with matching pixels from the reference</p>' +
+         '<p>- <b>Add</b>: start a new track</p>' +
+         '<p>- <b>Undo</b>: remove the last point from the selected track</p>' +
+         '<p>- <b>Edit</b>: move existing anchor points</p>' +
+         '<p>- <b>Apply</b>: apply the track mask to the current image<br></p>' +
+         '<p>- <b>Line width</b>: thickness of the track mask</p>' +
+         '<p>- <b>Preview</b>: overlay the drawn track on the processed image</p>' +
+         '<p>- <b>Reference</b>: display the reference image in the preview</p>' +
+         '<p>- <b>Multi Point Mode (Curve)</b>: draw curved tracks</p>' +
+         '<p>- <b>Add files to queue</b>: select files for batch processing</p>' +
+         '<p>- <b>Output folder</b>: destination folder for processed files</p>' +
+         '<p>- <b>Suffix</b>: suffix appended to output filenames</p>' +
          '<p><u><font size="4">Mouse operations:</font></u></p>' +
          '<p>- Click anywhere: adds a new anchor point to the selected track</p>' +
          '<p>- Drag inside an anchor: moves the anchor point</p>' +
