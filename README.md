@@ -90,7 +90,7 @@ Alternatively, run it directly via **Script → Run Script File...**
 | Reference checkbox | Display the reference image in the preview area |
 | Multi Point Mode | Enable curve mode (3+ anchor points) |
 | Line Width | Width of the removal mask in pixels |
-| Edit (⊕) button | Toggle anchor-edit mode — move existing anchors without adding new ones (green = off, red = on) |
+| Edit button | Toggle anchor-edit mode — move existing anchors without adding new ones (green = off, red = on) |
 | Undo button | Remove the last anchor point |
 | Apply button | Apply the removal to the current image |
 
