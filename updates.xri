@@ -5,15 +5,15 @@
         Repository for DeSatellite by Bunkei Kidani (mirfak-BK)
       </p>
    </description>
-   <platform os="all" arch="noarch" version="1.8.9:1.9.99">
-      <package fileName="DeSatellite_20260506.zip" sha1="f49256ae48e35bf831da32cd5e5d290789bee526"
-               type="script" releaseDate="20260506">
+   <platform os="all" arch="noarch" version="1.9.4:1.9.99">
+      <package fileName="DeSatellite_20260506.zip" sha1="15e085ecdc619aaa4ee968cff6fbd221c448e9fc"
+               type="script" releaseDate="20260515">
          <title>
-            DeSatellite 1.0.3
+            DeSatellite 1.0.4
          </title>
          <description>
             <p> It helps you manually mask satellite trails by painting them black [RGB(0,0,0)] before stacking, ensuring they are properly rejected as outliers. It also features a "Reference Mode" to replace pixels using a reference image.</p>
-            <h3>Release 1.0.3</h3>
+            <h3>Release 1.0.4</h3>
          </description>
       </package>
    </platform>
