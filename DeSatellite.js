@@ -3,10 +3,8 @@
 
    Purpose:
 
-      - black paint satellite trails
-      or
-      - replace satellite tracks with pixels from a reference frame
-
+      Blacks out satellite trails for pixel-rejection stacking,
+      or replaces them with pixels from a reference frame.
 
    Copyright (C) 2026, Kidani Bunkei
 
@@ -28,8 +26,12 @@
 
 
 #engine v8
+CoreApplication.ensureMinimumVersion( 1, 9, 4 );
 
 #feature-id    Utilities > DeSatellite
+#feature-icon  DeSatellite.svg
+#feature-info  Blacks out satellite trails for pixel-rejection stacking, or replaces them with pixels from a reference frame.
+
 
 #define VERSION "1.0.4"
 #define DEFAULT_AUTOSTRETCH_SCLIP -2.80
