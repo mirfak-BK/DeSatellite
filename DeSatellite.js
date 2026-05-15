@@ -27,26 +27,11 @@
 */
 
 
+#engine v8
+
 #feature-id    Utilities > DeSatellite
 
-#include <pjsr/BitmapFormat.jsh>
-#include <pjsr/StdButton.jsh>
-#include <pjsr/FrameStyle.jsh>
-#include <pjsr/TextAlign.jsh>
-#include <pjsr/NumericControl.jsh>
-#include <pjsr/Slider.jsh>
-#include <pjsr/UndoFlag.jsh>
-#include <pjsr/SampleType.jsh>
-#include <pjsr/DataType.jsh>
-#include <pjsr/Color.jsh>
-#include <pjsr/ColorSpace.jsh>
-#include <pjsr/StdCursor.jsh>
-#include <pjsr/ButtonCodes.jsh>
-#include <pjsr/StdIcon.jsh>
-#include <pjsr/StdCursor.jsh>
-#include <pjsr/PenStyle.jsh>
-
-#define VERSION "1.0.3"
+#define VERSION "1.0.4"
 #define DEFAULT_AUTOSTRETCH_SCLIP -2.80
 // Target mean background in the [0,1] range.
 #define DEFAULT_AUTOSTRETCH_TBGND   0.25
@@ -318,8 +303,8 @@ var LANG = {
    }
 };
 
-// 現在言語。loadLang() で初期化される (Settings 無い場合は 'ja' デフォルト)。
-var currentLang = 'ja';
+// 現在言語。loadLang() で初期化される (Settings 無い場合は 'en' デフォルト)。
+var currentLang = 'en';
 
 // 辞書引きヘルパー。キーが無ければ英語辞書 → キーそのもの の順にフォールバック。
 function T(key)
@@ -382,7 +367,7 @@ function loadLang()
 {
    try
    {
-      var v = Settings.read(ID + "/language", DataType_String);
+      var v = Settings.read(ID + "/language", DataType.String);
       if (v == 'en' || v == 'ja') return v;
    }
    catch (ex) { /* ignore */ }
@@ -393,7 +378,7 @@ function saveLang(lang)
 {
    try
    {
-      Settings.write(ID + "/language", DataType_String, lang);
+      Settings.write(ID + "/language", DataType.String, lang);
    }
    catch (ex) { /* ignore */ }
 }
@@ -514,7 +499,7 @@ function Track(index, bounds, trackStateCallback, trackCollection)
    {
       if (this.trackPoints.length < 2) return;
 
-      var pen = new Pen(0xff000000, lineWidth, PenStyle_Solid, PenCap_Round);
+      var pen = new Pen(0xff000000, lineWidth, PenStyle.Solid, PenCap_Round);
 
       g.pen = pen;
 
@@ -561,7 +546,7 @@ function Track(index, bounds, trackStateCallback, trackCollection)
       // 2点以上ある場合のみ曲線を描画
       if (this.trackPoints.length >= 2)
       {
-         var pen = new Pen(this.penColor, this.lineWidth, PenStyle_Solid, PenCap_Round);
+         var pen = new Pen(this.penColor, this.lineWidth, PenStyle.Solid, PenCap_Round);
          g.pen = pen;
 
          var curve = getCurvePoints(this.trackPoints);
@@ -875,14 +860,12 @@ var batchIndex     = 0;
 var batchCancelled = false;   // バッチ処理中断フラグ
 // ====================================================================
 
-function showDialog(initialWindow)
+class showDialog extends Dialog
 {
-   //
-   // Add all properties and methods of the core Dialog object to this object.
-   //
-   this.__base__ = Dialog;
-   this.__base__();
-   this.userResizable = true;
+   constructor(initialWindow)
+   {
+      super();
+      this.userResizable = true;
    var dialog = this;
    this.backgroundColor = 0xff242424;
    this.foregroundColor = 0xffffffff;
@@ -956,7 +939,7 @@ function showDialog(initialWindow)
 
          // 少し待機
          for (var i = 0; i < 40; i++) {
-            processEvents();
+            CoreApplication.processEvents();
             if (!targetWnd.isNull && !targetWnd.isClosed && !targetWnd.mainView.isNull)
                break;
          }
@@ -1008,7 +991,7 @@ function showDialog(initialWindow)
       {
          Console.writeln('Failed to open target file: ' + (ex.message || ex));
          new MessageBox("ターゲット画像のオープンに失敗しました。\n" + (ex.message || ex),
-                        "Error", StdIcon_Error, StdButton_Ok).execute();
+                        "Error", StdIcon.Error, StdButton.Ok).execute();
       }
    };
 
@@ -1019,7 +1002,7 @@ function showDialog(initialWindow)
       {
          new MessageBox("まずメインの処理対象画像を選択してください。\n" +
                         "（上部のビュー選択リストから画像を選ぶか、Open File... で画像を開いてください）",
-                        "メイン画像が必要です", StdIcon_Warning, StdButton_Ok).execute();
+                        "メイン画像が必要です", StdIcon.Warning, StdButton.Ok).execute();
          return;
       }
 
@@ -1053,7 +1036,7 @@ function showDialog(initialWindow)
          // ウィンドウが安定するまで少し待つ
          for (var i = 0; i < 40; i++)
          {
-            processEvents();
+            CoreApplication.processEvents();
             if (!refWnd.isNull && !refWnd.isClosed && !refWnd.mainView.isNull && refWnd.visible)
                break;
          }
@@ -1066,7 +1049,7 @@ function showDialog(initialWindow)
          {
             new MessageBox("Reference画像のサイズがメイン画像と一致しません。\n" +
                            "同じ幅・高さの画像を選択してください。",
-                           "Size Mismatch", StdIcon_Warning, StdButton_Ok).execute();
+                           "Size Mismatch", StdIcon.Warning, StdButton.Ok).execute();
             refWnd.forceClose();
             return;
          }
@@ -1081,9 +1064,9 @@ function showDialog(initialWindow)
                   .replace("%target%", targetChannels)
                   .replace("%ref%", refChannelsOpen),
                T("channel_mismatch_title"),
-               StdIcon_Warning,
-               StdButton_Yes, StdButton_No);
-            if (msgCh.execute() != StdButton_Yes)
+               StdIcon.Warning,
+               StdButton.Yes, StdButton.No);
+            if (msgCh.execute() != StdButton.Yes)
             {
                refWnd.forceClose();
                return;
@@ -1124,7 +1107,7 @@ function showDialog(initialWindow)
       {
          Console.writeln('Failed to open reference file: ' + (ex.message || ex));
          new MessageBox("Failed to open reference file \n" + (ex.message || ex),
-                        "Error", StdIcon_Error, StdButton_Ok).execute();
+                        "Error", StdIcon.Error, StdButton.Ok).execute();
       }
    };
 
@@ -1170,7 +1153,7 @@ function showDialog(initialWindow)
          new MessageBox('選択された Reference ビューが見つかりません。\n' +
                '(ウィンドウが閉じられている可能性があります)',
                'Reference not found',
-               StdIcon_Warning, StdButton_Ok).execute();
+               StdIcon.Warning, StdButton.Ok).execute();
          dialog.cmbReferences.currentItem = 0;
          dialog.t.reference = null;
          return;
@@ -1180,7 +1163,7 @@ function showDialog(initialWindow)
       {
          new MessageBox('The reference view must be different.',
          'No reference selected',
-         StdIcon_Information, StdButton_Ok).execute();
+         StdIcon.Information, StdButton.Ok).execute();
 
          dialog.cmbReferences.currentItem = 0;
 
@@ -1200,9 +1183,9 @@ function showDialog(initialWindow)
                   .replace("%target%", targetChannels)
                   .replace("%ref%", refChannels),
                T("channel_mismatch_title"),
-               StdIcon_Warning,
-               StdButton_Yes, StdButton_No);
-            if (msgCh.execute() != StdButton_Yes)
+               StdIcon.Warning,
+               StdButton.Yes, StdButton.No);
+            if (msgCh.execute() != StdButton.Yes)
             {
                dialog.cmbReferences.currentItem = 0;
                dialog.t.reference = null;
@@ -1228,7 +1211,7 @@ function showDialog(initialWindow)
          new MessageBox('The reference view incompatible.' +
                ' Must have same width and height.',
                'No reference selected',
-               StdIcon_Information, StdButton_Ok).execute();
+               StdIcon.Information, StdButton.Ok).execute();
 
          dialog.cmbReferences.currentItem = 0;
 
@@ -1238,11 +1221,9 @@ function showDialog(initialWindow)
    dialog.checkReference = checkReference;
 
    this.previewControl = new PreviewControl(this);
-   with (this.previewControl)
-   {
-      this.previewControl.onCustomMouseDown = function (x, y, button, buttonState, modifiers)
+   this.previewControl.onCustomMouseDown = function (x, y, button, buttonState, modifiers)
       {
-         if (button != MouseButton_Left) return;
+         if (button != MouseButton.Left) return;
 
       var previewScale = dialog.previewControl ? dialog.previewControl.scale : 1;
 
@@ -1259,7 +1240,7 @@ function showDialog(initialWindow)
       }
 
                // Ctrl+Click: prioritize point removal from existing tracks
-      if (modifiers == KeyModifier_Control)
+      if (modifiers == KeyModifier.Control)
       {
          if (dialog.t.Tracks.detectTrack(x, y, previewScale))
          {
@@ -1325,7 +1306,7 @@ function showDialog(initialWindow)
 
       this.previewControl.onCustomMouseMove = function( x, y, buttonState, modifiers )
       {
-         if (buttonState != MouseButton_Left) return;
+         if (buttonState != MouseButton.Left) return;
          if (selectedTrack != null)
          {
             selectedTrack.mouseMove(x, y);
@@ -1335,7 +1316,7 @@ function showDialog(initialWindow)
 
       this.previewControl.onMouseRelease = function( x, y, button, buttonState, modifiers )
       {
-         if (button != MouseButton_Left) return;
+         if (button != MouseButton.Left) return;
          if (selectedTrack != null)
          {
             selectedTrack.mouseUp(x, y);
@@ -1483,142 +1464,100 @@ function showDialog(initialWindow)
             }
          }
       }
-   }
 
    // display
 
    this.richTextBox = new Label(this);
-   with (this.richTextBox)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      useRichText = true;
-      visible = false;
-   }
+   this.richTextBox.backgroundColor = this.backgroundColor;
+   this.richTextBox.foregroundColor = this.foregroundColor;
+   this.richTextBox.useRichText = true;
+   this.richTextBox.visible = false;
 
    // assemble GUI elements
 
    // my ©
 
-   this.lblCopyright = new Label(this)
-   with (this.lblCopyright)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      text = "© 2026, B.Kidani ";
-   }
+   this.lblCopyright = new Label(this);
+   this.lblCopyright.backgroundColor = this.backgroundColor;
+   this.lblCopyright.foregroundColor = this.foregroundColor;
+   this.lblCopyright.font = this.font;
+   this.lblCopyright.text = "© 2026, B.Kidani ";
 
    this.btnHelp = new ToolButton(this);
-   with (this.btnHelp)
-   {
-      icon = this.scaledResource( ":/icons/help.png" );
-      setScaledFixedSize( 24, 24 );
-      toolTip = T("help_tooltip")
-   }
+   this.btnHelp.icon = this.scaledResource( ":/icons/help.png" );
+   this.btnHelp.setScaledFixedSize( 24, 24 );
+   this.btnHelp.toolTip = T("help_tooltip");
 
    this.toolNormal = new ToolButton(this);
-   with (this.toolNormal)
+   this.toolNormal.icon = this.scaledResource(':/icons/window-small.png');
+   this.toolNormal.setScaledFixedSize( 24, 24 );
+   this.toolNormal.toolTip = 'Restore this dialog window';
+   this.toolNormal.onPress = function ()
    {
-      icon = this.scaledResource(':/icons/window-small.png');
-      setScaledFixedSize( 24, 24 );
-      toolTip = 'Restore this dialog window';
-
-      onPress = function ()
+      if (!isNormalSize)
       {
-         if (!isNormalSize)
-         {
-            dialog.move(normalSize.x0, normalSize.y0);
-            dialog.resize(normalSize.width, normalSize.height);
-            isNormalSize = true;
-         }
+         dialog.move(normalSize.x0, normalSize.y0);
+         dialog.resize(normalSize.width, normalSize.height);
+         isNormalSize = true;
       }
-   }
+   };
 
    this.toolMax = new ToolButton(this);
-   with (this.toolMax)
+   this.toolMax.icon = this.scaledResource(':/icons/window.png');
+   this.toolMax.setScaledFixedSize( 24, 24 );
+   this.toolMax.toolTip = 'Maximize this window';
+   this.toolMax.onPress = function ()
    {
-      icon = this.scaledResource(':/icons/window.png');
-      setScaledFixedSize( 24, 24 );
-      toolTip = 'Maximize this window';
-
-      onPress = function ()
+      if (isNormalSize)
       {
-         if (isNormalSize)
-         {
-            var x0 = dialog.position.x;
-            var y0 = dialog.position.y;
-            var x1 = dialog.position.x + dialog.width;
-            var y1 = dialog.position.y + dialog.height;
-            normalSize = new Rect(x0, y0, x1, y1);
-            dialog.move(0, 0);
-            dialog.resize(Screen.width, Screen.height - 36 * formsScaling);
-            isNormalSize = false;
-         }
+         var x0 = dialog.position.x;
+         var y0 = dialog.position.y;
+         var x1 = dialog.position.x + dialog.width;
+         var y1 = dialog.position.y + dialog.height;
+         normalSize = new Rect(x0, y0, x1, y1);
+         dialog.move(0, 0);
+         dialog.resize(Screen.width, Screen.height - 36 * formsScaling);
+         isNormalSize = false;
       }
-   }
+   };
 
    // 親を previewControl に設定して、previewControl.buttons_Box 内に配置する。
    this.toolStretch = new ToolButton(this.previewControl);
-   with (this.toolStretch)
+   this.toolStretch.icon = this.scaledResource(':/toolbar/image-stf-auto.png');
+   this.toolStretch.setScaledFixedSize( 24, 24 );
+   this.toolStretch.checkable = true;
+   this.toolStretch.checked = true;
+   this.toolStretch.toolTip = T("autostretch");
+   this.toolStretch.onPress = function ()
    {
-      icon = this.scaledResource(':/toolbar/image-stf-auto.png');
-      setScaledFixedSize( 24, 24 );
-      checkable = true;
-      checked = true;   // デフォルト ON（ファイルを開いたときストレッチONと一致）
-      toolTip = T("autostretch");
-
-      onPress = function ()
+      var nextState = !this.checked;
+      autoStretchEnabled = nextState;
+      dialog.autoStretchEnabled = nextState;
+      if (dialog.t && dialog.t.view && typeof dialog.t.refreshBitmap === "function")
       {
-         // onPress は押す前の checked 値で発火するため !this.checked で次の状態を取得
-         var nextState = !this.checked;
-         autoStretchEnabled = nextState;
-         dialog.autoStretchEnabled = nextState;
-
-         // ビットマップだけ作り直し、トラック・参照・ズーム倍率は保持する
-         if (dialog.t && dialog.t.view && typeof dialog.t.refreshBitmap === "function")
-         {
-            dialog.t.refreshBitmap();
-
-            // Preview チェックがONなら合成済みプレビューに再合成
-            if (drawTracksSized && dialog.t.updatePreviewWithReference)
-               dialog.t.updatePreviewWithReference();
-
-            dialog.previewControl.forceRedraw();
-         }
+         dialog.t.refreshBitmap();
+         if (drawTracksSized && dialog.t.updatePreviewWithReference)
+            dialog.t.updatePreviewWithReference();
+         dialog.previewControl.forceRedraw();
       }
-   }
+   };
 
    // 言語切替ボタン
-   // 現在の言語 (JA / EN) をラベルとして表示する。
-   // 親を previewControl に設定して、previewControl.buttons_Box の右端に配置する。
    this.toolLang = new PushButton(this.previewControl);
-   with (this.toolLang)
+   this.toolLang.backgroundColor = 0xff555555;
+   this.toolLang.font = this.font;
+   this.toolLang.text = (currentLang == 'ja') ? 'JA' : 'EN';
+   this.toolLang.toolTip = T("lang_tooltip");
+   this.toolLang.styleSheet = "QPushButton { padding: 2px 4px; min-width: 0; }";
+   this.toolLang.setScaledFixedWidth(28);
+   this.toolLang.onClick = function ()
    {
-      backgroundColor = 0xff555555;
-      font = this.font;
-      text = (currentLang == 'ja') ? 'JA' : 'EN';
-      toolTip = T("lang_tooltip");
-      // Qt 内部の min-width と padding を上書きしないと setScaledFixedWidth は効かない
-      styleSheet = "QPushButton { padding: 2px 4px; min-width: 0; }";
-      setScaledFixedWidth(28);
-
-      onClick = function ()
-      {
-         // トグル: ja ↔ en
-         var next = (currentLang == 'ja') ? 'en' : 'ja';
-         currentLang = next;
-         saveLang(next);
-
-         // onHide が clearReference を呼ぶ前に状態を保存
-         langRestartState = saveLangState(dialog);
-
-         // ダイアログを再起動 (main() のループで再構築される)
-         dialog.done(LANG_RESTART_CODE);
-      }
-   }
+      var next = (currentLang == 'ja') ? 'en' : 'ja';
+      currentLang = next;
+      saveLang(next);
+      langRestartState = saveLangState(dialog);
+      dialog.done(LANG_RESTART_CODE);
+   };
 
    // ====================== プレビュー上部ツールバーの最終レイアウト ======================
    // PreviewControl 側で buttons_Box のみ作成し、sizer は dialog 側で組み立てる。
@@ -1644,77 +1583,67 @@ function showDialog(initialWindow)
    // ====================== Batch processing GUI ======================
 
    this.btnQueueFiles = new PushButton(this);
-   with (this.btnQueueFiles)
+   this.btnQueueFiles.backgroundColor = this.backgroundColor;
+   this.btnQueueFiles.foregroundColor = this.foregroundColor;
+   this.btnQueueFiles.font = this.font;
+   this.btnQueueFiles.icon = this.scaledResource(':/icons/open.png');
+   this.btnQueueFiles.text = T("batch_queue_add");
+   this.btnQueueFiles.toolTip = T("batch_queue_tip");
+   this.btnQueueFiles.onClick = function()
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
+      var ofd = new OpenFileDialog;
+      ofd.caption = T("target_ofd_caption");
+      ofd.filters = [
+         ["All supported formats", ".xisf", ".fit", ".fits", ".fts", ".jpg", ".jpeg", ".png", ".tif", ".tiff"],
+         ["PixInsight XISF", ".xisf"],
+         ["FITS files", ".fit", ".fits", ".fts"],
+         ["JPEG images", ".jpg", ".jpeg"],
+         ["PNG images", ".png"],
+         ["TIFF images", ".tif", ".tiff"]
+      ];
+      ofd.multipleSelections = true;
 
-      font = this.font;
-      icon = this.scaledResource(':/icons/open.png');
-      text = T("batch_queue_add");
-      toolTip = T("batch_queue_tip");
-
-      onClick = function()
+      if (ofd.execute())
       {
-         var ofd = new OpenFileDialog;
-         ofd.caption = T("target_ofd_caption");
-         ofd.filters = [
-            ["All supported formats", ".xisf", ".fit", ".fits", ".fts", ".jpg", ".jpeg", ".png", ".tif", ".tiff"],
-            ["PixInsight XISF", ".xisf"],
-            ["FITS files", ".fit", ".fits", ".fts"],
-            ["JPEG images", ".jpg", ".jpeg"],
-            ["PNG images", ".png"],
-            ["TIFF images", ".tif", ".tiff"]
-         ];
-         ofd.multipleSelections = true;
-
-         if (ofd.execute())
+         var files = ofd.fileNames;
+         for (var i = 0; i < files.length; i++)
          {
-            var files = ofd.fileNames;
-            for (var i = 0; i < files.length; i++)
+            var fp = files[i];
+            var fn = fp.substring(fp.lastIndexOf('/') + 1);
+            var exists = false;
+            for (var j = 0; j < batchQueue.length; j++)
             {
-               var fp = files[i];
-               var fn = fp.substring(fp.lastIndexOf('/') + 1);
-               var exists = false;
-               for (var j = 0; j < batchQueue.length; j++)
-               {
-                  if (batchQueue[j].filePath == fp) { exists = true; break; }
-               }
-               if (!exists)
-                  batchQueue.push({ filePath: fp, fileName: fn, status: 'waiting' });
+               if (batchQueue[j].filePath == fp) { exists = true; break; }
             }
-            batchUpdateList(dialog);
-            batchTryStart(dialog);
+            if (!exists)
+               batchQueue.push({ filePath: fp, fileName: fn, status: 'waiting' });
          }
+         batchUpdateList(dialog);
+         batchTryStart(dialog);
       }
-   }
+   };
 
    this.btnOutputFolder = new PushButton(this);
-   with (this.btnOutputFolder)
+   this.btnOutputFolder.backgroundColor = this.backgroundColor;
+   this.btnOutputFolder.foregroundColor = this.foregroundColor;
+   this.btnOutputFolder.font = this.font;
+   this.btnOutputFolder.icon = this.scaledResource(':/icons/folder.png');
+   this.btnOutputFolder.text = T("output_folder");
+   this.btnOutputFolder.toolTip = T("output_folder_tip");
+   this.btnOutputFolder.onClick = function()
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
+      var gdd = new GetDirectoryDialog;
+      gdd.caption = T("output_folder_caption");
+      if (outputFolder.length > 0)
+         gdd.initialPath = outputFolder;
 
-      font = this.font;
-      icon = this.scaledResource(':/icons/folder.png');
-      text = T("output_folder");
-      toolTip = T("output_folder_tip");
-
-      onClick = function()
+      if (gdd.execute())
       {
-         var gdd = new GetDirectoryDialog;
-         gdd.caption = T("output_folder_caption");
-         if (outputFolder.length > 0)
-            gdd.initialPath = outputFolder;
-
-         if (gdd.execute())
-         {
-            outputFolder = gdd.directory;
-            dialog.lblOutputPath.text = outputFolder;
-            batchTryStart(dialog);
-         }
+         outputFolder = gdd.directory;
+         dialog.lblOutputPath.text = outputFolder;
+         batchTryStart(dialog);
       }
-   }
+   };
 
    // btnQueueFiles と btnOutputFolder のサイズを揃える。
    //   - 幅は btnQueueFiles の自然幅に合わせる (テキストが長い方)
@@ -1729,139 +1658,102 @@ function showDialog(initialWindow)
 
 
    this.lblOutputPath = new Label(this);
-   with (this.lblOutputPath)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = 0xff888888;
-      font = this.font;
-      // 言語切替で再起動した場合も既に指定済みのパスを引き継ぐ
-      text = (outputFolder && outputFolder.length > 0) ? outputFolder : T("not_set");
-   }
+   this.lblOutputPath.backgroundColor = this.backgroundColor;
+   this.lblOutputPath.foregroundColor = 0xff888888;
+   this.lblOutputPath.font = this.font;
+   // 言語切替で再起動した場合も既に指定済みのパスを引き継ぐ
+   this.lblOutputPath.text = (outputFolder && outputFolder.length > 0) ? outputFolder : T("not_set");
 
    this.lblSuffix = new Label(this);
-   with (this.lblSuffix)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      text = T("suffix_label");
-      // 右側の Edit ボックスに対して上辺に浮かないよう縦中央寄せ
-      textAlignment = TextAlign_Left | TextAlign_VertCenter;
-   }
+   this.lblSuffix.backgroundColor = this.backgroundColor;
+   this.lblSuffix.foregroundColor = this.foregroundColor;
+   this.lblSuffix.font = this.font;
+   this.lblSuffix.text = T("suffix_label");
+   // 右側の Edit ボックスに対して上辺に浮かないよう縦中央寄せ
+   this.lblSuffix.textAlignment = TextAlignment.Left | TextAlignment.VertCenter;
 
    this.editSuffix = new Edit(this);
-   with (this.editSuffix)
-   {
-      backgroundColor = 0xff333333;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      text = '_ds';
-      setScaledFixedWidth(60);
-      toolTip = T("suffix_tip");
-   }
+   this.editSuffix.backgroundColor = 0xff333333;
+   this.editSuffix.foregroundColor = this.foregroundColor;
+   this.editSuffix.font = this.font;
+   this.editSuffix.text = '_ds';
+   this.editSuffix.setScaledFixedWidth(60);
+   this.editSuffix.toolTip = T("suffix_tip");
 
    this.batchList = new TreeBox(this);
-   with (this.batchList)
-   {
-      backgroundColor = 0xff1a1a1a;
-      foregroundColor = 0xffffffff;
-      font = this.font;
-      numberOfColumns = 1;
-      setHeaderText(0, '');
-      headerVisible = false;
-      setScaledFixedHeight(200);
-      alternateRowColor = false;
-      rootDecoration = false;
-      styleSheet = this.scaledStyleSheet(
-         "QTreeView { background-color: #1a1a1a; color: white;" +
-         " border: 1px solid #444444; }" +
-         "QTreeView::item { padding-left: 2px; }" +
-         "QTreeView::branch { width: 0px; border: none; image: none; }"
-      );
-      toolTip = 'バッチキューのファイル一覧。';
-   }
+   this.batchList.backgroundColor = 0xff1a1a1a;
+   this.batchList.foregroundColor = 0xffffffff;
+   this.batchList.font = this.font;
+   this.batchList.numberOfColumns = 1;
+   this.batchList.setHeaderText(0, '');
+   this.batchList.headerVisible = false;
+   this.batchList.setScaledFixedHeight(200);
+   this.batchList.alternateRowColor = false;
+   this.batchList.rootDecoration = false;
+   this.batchList.styleSheet = this.scaledStyleSheet(
+      "QTreeView { background-color: #1a1a1a; color: white;" +
+      " border: 1px solid #444444; }" +
+      "QTreeView::item { padding-left: 2px; }" +
+      "QTreeView::branch { width: 0px; border: none; image: none; }"
+   );
+   this.batchList.toolTip = 'バッチキューのファイル一覧。';
 
    this.lblBatchProgress = new Label(this);
-   with (this.lblBatchProgress)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = 0xff00f0ff;
-      font = this.font;
-      text = '';
-   }
+   this.lblBatchProgress.backgroundColor = this.backgroundColor;
+   this.lblBatchProgress.foregroundColor = 0xff00f0ff;
+   this.lblBatchProgress.font = this.font;
+   this.lblBatchProgress.text = '';
 
    this.btnSaveNext = new PushButton(this);
-   with (this.btnSaveNext)
+   this.btnSaveNext.backgroundColor = this.backgroundColor;
+   this.btnSaveNext.foregroundColor = this.foregroundColor;
+   this.btnSaveNext.font = this.font;
+   this.btnSaveNext.icon = this.scaledResource(':/icons/ok.png');
+   this.btnSaveNext.text = T("save_and_next");
+   this.btnSaveNext.enabled = false;
+   this.btnSaveNext.toolTip = T("save_and_next_tip");
+   this.btnSaveNext.onClick = function()
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      icon = this.scaledResource(':/icons/ok.png');
-      text = T("save_and_next");
-      enabled = false;
-      toolTip = T("save_and_next_tip");
-
-      onClick = function()
-      {
-         batchSaveAndNext(dialog);
-      }
-   }
+      batchSaveAndNext(dialog);
+   };
 
    this.btnSkipNext = new PushButton(this);
-   with (this.btnSkipNext)
+   this.btnSkipNext.backgroundColor = this.backgroundColor;
+   this.btnSkipNext.foregroundColor = this.foregroundColor;
+   this.btnSkipNext.font = this.font;
+   this.btnSkipNext.icon = this.scaledResource(':/icons/arrow-right.png');
+   this.btnSkipNext.text = T("skip_copy");
+   this.btnSkipNext.enabled = false;
+   this.btnSkipNext.toolTip = T("skip_copy_tip");
+   this.btnSkipNext.onClick = function()
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      icon = this.scaledResource(':/icons/arrow-right.png');
-      text = T("skip_copy");
-      enabled = false;
-      toolTip = T("skip_copy_tip");
-
-      onClick = function()
-      {
-         batchSkipAndNext(dialog);
-      }
-   }
+      batchSkipAndNext(dialog);
+   };
    this.btnSkipNoSave = new PushButton(this);
-   with (this.btnSkipNoSave)
+   this.btnSkipNoSave.backgroundColor = this.backgroundColor;
+   this.btnSkipNoSave.foregroundColor = this.foregroundColor;
+   this.btnSkipNoSave.font = this.font;
+   this.btnSkipNoSave.icon = this.scaledResource(':/icons/delete.png');
+   this.btnSkipNoSave.text = T("skip_no_copy");
+   this.btnSkipNoSave.enabled = false;
+   this.btnSkipNoSave.toolTip = T("skip_no_copy_tip");
+   this.btnSkipNoSave.onClick = function()
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      icon = this.scaledResource(':/icons/delete.png');
-      text = T("skip_no_copy");
-      enabled = false;
-      toolTip = T("skip_no_copy_tip");
-
-      onClick = function()
-      {
-         batchSkipNoCopy(dialog);
-      }
-   }
+      batchSkipNoCopy(dialog);
+   };
 
    this.btnCancelBatch = new PushButton(this);
-   with (this.btnCancelBatch)
+   this.btnCancelBatch.backgroundColor = this.backgroundColor;
+   this.btnCancelBatch.foregroundColor = this.foregroundColor;
+   this.btnCancelBatch.font = this.font;
+   this.btnCancelBatch.icon = this.scaledResource(':/process-interface/abort.png');
+   this.btnCancelBatch.text = T("batch_cancel");
+   this.btnCancelBatch.enabled = false;
+   this.btnCancelBatch.toolTip = T("batch_cancel_tip");
+   this.btnCancelBatch.onClick = function()
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      icon = this.scaledResource(':/process-interface/abort.png');
-      text = T("batch_cancel");
-      enabled = false;
-      toolTip = T("batch_cancel_tip");
-
-      onClick = function()
-      {
-         batchCancelled = true;
-      }
-   }
+      batchCancelled = true;
+   };
 
    // ====================== End of Batch processing GUI ======================
 
@@ -1869,97 +1761,86 @@ this.workspaceViewList = new ComboBox(this);
    // 中央揃えラッパを最初の addItem 前に適用 (以降 addItem/setItemText は自動で
    // 先頭スペース埋め、itemText は元テキストを返す)
    applyComboCenterAlignment(this.workspaceViewList, 140);
-   with (this.workspaceViewList)
+   this.workspaceViewList.font = this.font;
+   this.workspaceViewList.setScaledFixedWidth(170);
+   // 初期項目（Open File... を必ず入れる）
+   this.workspaceViewList.addItem(T("target_select_placeholder"));
+   this.workspaceViewList.addItem(T("target_open_file"));
+   this.workspaceViewList.currentItem = 0;
+   this.workspaceViewList.onItemSelected = function (index)
    {
-      font = this.font;
-      setScaledFixedWidth(170);
+      var selectedText = this.itemText(index);
 
-      // 初期項目（Open File... を必ず入れる）
-      addItem(T("target_select_placeholder"));
-      addItem(T("target_open_file"));
-
-      currentItem = 0;
-
-      onItemSelected = function (index)
+      if (selectedText === T("target_open_file"))
       {
-         var selectedText = this.itemText(index);
+         dialog.openTargetFile();
+         return;
+      }
 
-         if (selectedText === T("target_open_file"))
+      if (index === 0) return;   // プレースホルダ
+
+      // 通常のビュー選択処理
+      var id = selectedText;
+      var targetWnd = null;
+      var windows = ImageWindow.windows;
+      for (var i = 0; i < windows.length; i++)
+      {
+         var wnd = windows[i];
+         if (wnd && !wnd.isNull && !wnd.isClosed && wnd.mainView.id === id)
          {
-            dialog.openTargetFile();
-            return;
-         }
-
-         if (index === 0) return;   // プレースホルダ
-
-         // 通常のビュー選択処理
-         var id = selectedText;
-         var targetWnd = null;
-         var windows = ImageWindow.windows;
-         for (var i = 0; i < windows.length; i++)
-         {
-            var wnd = windows[i];
-            if (wnd && !wnd.isNull && !wnd.isClosed && wnd.mainView.id === id)
-            {
-               targetWnd = wnd;
-               break;
-            }
-         }
-
-         if (!targetWnd) return;
-
-         dialog.t = new viewsSetup(dialog, targetWnd, dialog.previewControl);
-         checkReference();
-         dialog.windowTitle = TITLE + ' - ' + targetWnd.mainView.id;
-
-         selectedTrack = null;
-         dialog.btnAdd.enabled = true;
-         dialog.btnRemove.enabled = false;
-         dialog.btnApply.enabled = false;
-         dialog.btnEdit.enabled = false;
-         dialog.btnSaveNext.enabled    = (outputFolder.length > 0 && batchQueue.length > 0);
-         dialog.btnSkipNext.enabled    = (outputFolder.length > 0 && batchQueue.length > 0);
-         dialog.btnSkipNoSave.enabled  = (batchQueue.length > 0);
-         // 新しいターゲットを開いたら Edit モードは解除
-         dialog.editMode = false;
-         if (dialog.btnEdit) { dialog.btnEdit.checked = false; dialog.btnEdit.icon = iconEditOff; }
-
-         // 最初のポイントを置くのに Add ボタンをクリックする手間を省くため、
-         // ターゲットを開いた直後に自動的に新規トラックを開始しておく。
-         if (dialog.t && dialog.t.Tracks)
-         {
-            dialog.t.Tracks.addTrack();
-            selectedTrack = dialog.t.Tracks.selectedTrack;
+            targetWnd = wnd;
+            break;
          }
       }
-   }
-   this.btnAdd = new PushButton(this);
-   with (this.btnAdd)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
 
-      font = this.font;
-      icon = this.scaledResource(':/icons/add.png');
-      text = T("add");
-      toolTip = T("add_tooltip");
-      setScaledFixedWidth(130);
+      if (!targetWnd) return;
 
-      onClick = function ( checked )
+      dialog.t = new viewsSetup(dialog, targetWnd, dialog.previewControl);
+      checkReference();
+      dialog.windowTitle = TITLE + ' - ' + targetWnd.mainView.id;
+
+      selectedTrack = null;
+      dialog.btnAdd.enabled = true;
+      dialog.btnRemove.enabled = false;
+      dialog.btnApply.enabled = false;
+      dialog.btnEdit.enabled = false;
+      dialog.btnSaveNext.enabled    = (outputFolder.length > 0 && batchQueue.length > 0);
+      dialog.btnSkipNext.enabled    = (outputFolder.length > 0 && batchQueue.length > 0);
+      dialog.btnSkipNoSave.enabled  = (batchQueue.length > 0);
+      // 新しいターゲットを開いたら Edit モードは解除
+      dialog.editMode = false;
+      if (dialog.btnEdit) { dialog.btnEdit.checked = false; dialog.btnEdit.icon = iconEditOff; }
+
+      // 最初のポイントを置くのに Add ボタンをクリックする手間を省くため、
+      // ターゲットを開いた直後に自動的に新規トラックを開始しておく。
+      if (dialog.t && dialog.t.Tracks)
       {
-         if (dialog.t == null || dialog.t.Tracks == null) return;
-         // Add ボタンで新規トラックを開始するときは Edit モードを解除 (新しい点を置くため)
-         if (dialog.editMode)
-         {
-            dialog.editMode = false;
-            if (dialog.btnEdit) { dialog.btnEdit.checked = false; dialog.btnEdit.icon = iconEditOff; }
-         }
          dialog.t.Tracks.addTrack();
          selectedTrack = dialog.t.Tracks.selectedTrack;
-         dialog.btnRemove.enabled = true;
-         dialog.btnEdit.enabled = true;
       }
-   }
+   };
+   this.btnAdd = new PushButton(this);
+   this.btnAdd.backgroundColor = this.backgroundColor;
+   this.btnAdd.foregroundColor = this.foregroundColor;
+   this.btnAdd.font = this.font;
+   this.btnAdd.icon = this.scaledResource(':/icons/add.png');
+   this.btnAdd.text = T("add");
+   this.btnAdd.toolTip = T("add_tooltip");
+   this.btnAdd.setScaledFixedWidth(130);
+   this.btnAdd.onClick = function ( checked )
+   {
+      if (dialog.t == null || dialog.t.Tracks == null) return;
+      // Add ボタンで新規トラックを開始するときは Edit モードを解除 (新しい点を置くため)
+      if (dialog.editMode)
+      {
+         dialog.editMode = false;
+         if (dialog.btnEdit) { dialog.btnEdit.checked = false; dialog.btnEdit.icon = iconEditOff; }
+      }
+      dialog.t.Tracks.addTrack();
+      selectedTrack = dialog.t.Tracks.selectedTrack;
+      dialog.btnRemove.enabled = true;
+      dialog.btnEdit.enabled = true;
+   };
 
    this.lastValidLineWidth = 10;   // 直前の正常な値
 
@@ -1985,15 +1866,11 @@ this.workspaceViewList = new ComboBox(this);
 
    // ====================== Line Width: ComboBox (プリセット) + Edit (手動入力) ======================
    this.lblLineWidth = new Label(this);
-   with (this.lblLineWidth)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      text = T("line_width");
-      textAlignment = TextAlign_Left | TextAlign_VertCenter;
-   }
+   this.lblLineWidth.backgroundColor = this.backgroundColor;
+   this.lblLineWidth.foregroundColor = this.foregroundColor;
+   this.lblLineWidth.font = this.font;
+   this.lblLineWidth.text = T("line_width");
+   this.lblLineWidth.textAlignment = TextAlignment.Left | TextAlignment.VertCenter;
 
    // プリセット選択用 ComboBox（editable は使わない）
    this.cmbLineWidth = new ComboBox(this);
@@ -2038,52 +1915,47 @@ this.workspaceViewList = new ComboBox(this);
 
 
       this.btnRemove = new PushButton(this);
-   with (this.btnRemove)
+   this.btnRemove.backgroundColor = this.backgroundColor;
+   this.btnRemove.enabled = false;
+   this.btnRemove.foregroundColor = this.foregroundColor;
+   this.btnRemove.font = this.font;
+   this.btnRemove.icon = this.scaledResource(':/icons/undo.png');
+   this.btnRemove.text = T("undo");
+   this.btnRemove.toolTip = T("undo_tooltip");
+   this.btnRemove.setScaledFixedWidth(130);
+   this.btnRemove.onClick = function ( checked )
    {
-      backgroundColor = this.backgroundColor;
-      enabled = false;
-      foregroundColor = this.foregroundColor;
+      if (selectedTrack == null || dialog.t == null || dialog.t.Tracks == null)
+         return;
 
-      font = this.font;
-      icon = this.scaledResource(':/icons/undo.png');
-      text = T("undo");
-      toolTip = T("undo_tooltip");
-      setScaledFixedWidth(130);
+      // Undo実行
+      dialog.t.Tracks.removeLastPointFromSelectedTrack();
 
-      onClick = function ( checked )
+      var hasTracks = dialog.t.Tracks.count() > 0;
+
+      // ボタンの有効/無効を更新
+      dialog.btnRemove.enabled = hasTracks;
+      dialog.btnApply.enabled = hasTracks;
+      dialog.btnEdit.enabled = hasTracks;
+      // トラックが無くなったら Edit モードも解除
+      if (!hasTracks)
       {
-         if (selectedTrack == null || dialog.t == null || dialog.t.Tracks == null)
-            return;
-
-         // Undo実行
-         dialog.t.Tracks.removeLastPointFromSelectedTrack();
-
-         var hasTracks = dialog.t.Tracks.count() > 0;
-
-         // ボタンの有効/無効を更新
-         dialog.btnRemove.enabled = hasTracks;
-         dialog.btnApply.enabled = hasTracks;
-         dialog.btnEdit.enabled = hasTracks;
-         // トラックが無くなったら Edit モードも解除
-         if (!hasTracks)
-         {
-            dialog.editMode = false;
-            if (dialog.btnEdit) { dialog.btnEdit.checked = false; dialog.btnEdit.icon = iconEditOff; }
-         }
-
-         dialog.previewControl.forceRedraw();
-
-         // ★★★ ラベル関連のコードをすべて削除 ★★★
-         if (dialog.t.Tracks.count() > 0)
-         {
-            selectedTrack = dialog.t.Tracks.selectedTrack;
-         }
-         else
-         {
-            selectedTrack = null;
-         }
+         dialog.editMode = false;
+         if (dialog.btnEdit) { dialog.btnEdit.checked = false; dialog.btnEdit.icon = iconEditOff; }
       }
-   }
+
+      dialog.previewControl.forceRedraw();
+
+      // ★★★ ラベル関連のコードをすべて削除 ★★★
+      if (dialog.t.Tracks.count() > 0)
+      {
+         selectedTrack = dialog.t.Tracks.selectedTrack;
+      }
+      else
+      {
+         selectedTrack = null;
+      }
+   };
 
    // ====================== Edit (既存アンカー編集) ボタン ======================
    // ON の間、クリックは既存アンカーの選択 + ドラッグ専用 (新規アンカーは置かない)。
@@ -2109,38 +1981,31 @@ this.workspaceViewList = new ComboBox(this);
    this.iconEditOn  = iconEditOn;
 
    this.btnEdit = new PushButton(this);
-   with (this.btnEdit)
+   this.btnEdit.backgroundColor = this.backgroundColor;
+   this.btnEdit.enabled = false;
+   this.btnEdit.foregroundColor = this.foregroundColor;
+   this.btnEdit.font = this.font;
+   this.btnEdit.icon = iconEditOff;
+   this.btnEdit.iconWidth = 16;
+   this.btnEdit.iconHeight = 16;
+   this.btnEdit.text = T("edit");
+   this.btnEdit.toolTip = T("edit_tooltip");
+   this.btnEdit.setScaledFixedWidth(130);
+   this.btnEdit.onClick = function ()
    {
-      backgroundColor = this.backgroundColor;
-      enabled = false;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      icon = iconEditOff;
-      iconWidth = 16;
-      iconHeight = 16;
-      text = T("edit");
-      toolTip = T("edit_tooltip");
-      setScaledFixedWidth(130);
-
-      onClick = function ()
-      {
-         dialog.editMode = !dialog.editMode;
-         dialog.btnEdit.icon = dialog.editMode ? iconEditOn : iconEditOff;
-         dialog.previewControl.forceRedraw();
-      }
-   }
+      dialog.editMode = !dialog.editMode;
+      dialog.btnEdit.icon = dialog.editMode ? iconEditOn : iconEditOff;
+      dialog.previewControl.forceRedraw();
+   };
 
    this.cmbReferences = new ComboBox(this);
    // 中央揃えラッパを最初の addItem 前に適用
    applyComboCenterAlignment(this.cmbReferences, 140);
-   with (this.cmbReferences)
+   this.cmbReferences.font = this.font;
+   this.cmbReferences.addItem(T("reference_select_placeholder"));
+   this.cmbReferences.addItem(T("reference_open_file"));   // ファイルを開く専用項目
+   // 現在開いているビューを追加
    {
-      font = this.font;
-      addItem(T("reference_select_placeholder"));
-      addItem(T("reference_open_file"));   // ファイルを開く専用項目
-
-      // 現在開いているビューを追加
       var windows = ImageWindow.windows;
       for (var i = 0; i < windows.length; i++)
       {
@@ -2152,78 +2017,65 @@ this.workspaceViewList = new ComboBox(this);
          if (v.isNull)
             continue;
 
-         addItem(v.id);
-      }
-
-      setScaledFixedWidth(170);   // 幅固定
-
-      // 常に表示
-      visible = true;
-
-      onItemSelected = function (index)
-      {
-         var selectedText = this.itemText(index);
-
-         if (selectedText === T("reference_open_file"))
-         {
-            dialog.openReferenceFile();   // ファイルを開いてリファレンスとして登録
-            return;
-         }
-
-         checkReference();   // 既存の処理 (ビュー選択時)
+         this.cmbReferences.addItem(v.id);
       }
    }
+   this.cmbReferences.setScaledFixedWidth(170);   // 幅固定
+   this.cmbReferences.visible = true;
+   this.cmbReferences.onItemSelected = function (index)
+   {
+      var selectedText = this.itemText(index);
+
+      if (selectedText === T("reference_open_file"))
+      {
+         dialog.openReferenceFile();   // ファイルを開いてリファレンスとして登録
+         return;
+      }
+
+      checkReference();   // 既存の処理 (ビュー選択時)
+   };
 
    this.cbDrawMode = new CheckBox(this)
-   with (this.cbDrawMode)
+   this.cbDrawMode.backgroundColor = this.backgroundColor;
+   this.cbDrawMode.foregroundColor = this.foregroundColor;
+   this.cbDrawMode.font = this.font;
+   this.cbDrawMode.text  = 'Preview';
+   this.cbDrawMode.toolTip = T("preview_tip");
+   this.cbDrawMode.onCheck = function (checked)
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
+      drawTracksSized = checked;
+      // Preview と Reference は排他: Preview を ON にしたら Reference 表示を解除
+      if (checked && dialog.cbShowReference && dialog.cbShowReference.checked)
+         dialog.cbShowReference.checked = false;
 
-      font = this.font;
-      text  = 'Preview';
-      toolTip = T("preview_tip");
-
-      onCheck = function (checked)
+      if (dialog.t && dialog.t.Tracks)
       {
-         drawTracksSized = checked;
-         // Preview と Reference は排他: Preview を ON にしたら Reference 表示を解除
-         if (checked && dialog.cbShowReference && dialog.cbShowReference.checked)
-            dialog.cbShowReference.checked = false;
-
-         if (dialog.t && dialog.t.Tracks)
+         if (drawTracksSized)
          {
-            if (drawTracksSized)
-            {
-               if (dialog.t.updatePreviewWithReference)
-                  dialog.t.updatePreviewWithReference();
-            }
-            else
-            {
-               if (dialog.t.restoreOriginalPreview)
-                  dialog.t.restoreOriginalPreview();
-            }
-            dialog.previewControl.forceRedraw();
+            if (dialog.t.updatePreviewWithReference)
+               dialog.t.updatePreviewWithReference();
          }
+         else
+         {
+            if (dialog.t.restoreOriginalPreview)
+               dialog.t.restoreOriginalPreview();
+         }
+         dialog.previewControl.forceRedraw();
       }
-   }
+   };
 
    // ====================== Reference 表示チェックボックス ======================
    // ON でリファレンス画像をプレビュー領域に表示。スクリプトを離れずに
    // リファレンス画像の中身を確認
    this.cbShowReference = new CheckBox(this);
-   with (this.cbShowReference)
+   this.cbShowReference.backgroundColor = this.backgroundColor;
+   this.cbShowReference.foregroundColor = this.foregroundColor;
+   this.cbShowReference.font = this.font;
+   this.cbShowReference.text     = T("reference_show");   // 「Reference」(日本語モードでも英語表記)
+   this.cbShowReference.toolTip  = T("reference_show_tip");
+   this.cbShowReference.checked  = false;
+   this.cbShowReference.onCheck = function (checked)
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      text     = T("reference_show");   // 「Reference」(日本語モードでも英語表記)
-      toolTip  = T("reference_show_tip");
-      checked  = false;
-
-      onCheck = function (checked)
-      {
          if (checked)
          {
             // Reference view を取得: dialog.t.reference 優先、なければ cmbReferences から直接取得
@@ -2260,7 +2112,7 @@ this.workspaceViewList = new ComboBox(this);
                      ? "リファレンス画像が選択されていません。\n上のリファレンスドロップダウンから選択するか、\n「--- Open File... ---」でファイルを開いてください。"
                      : "No reference image selected.\nPick one from the reference dropdown above\nor open a file via \"--- Open File... ---\".",
                   (currentLang == 'ja') ? "リファレンスなし" : "No reference",
-                  StdIcon_Information, StdButton_Ok).execute();
+                  StdIcon.Information, StdButton.Ok).execute();
                this.checked = false;
                return;
             }
@@ -2305,423 +2157,336 @@ this.workspaceViewList = new ComboBox(this);
                dialog.t.restoreOriginalPreview();
             dialog.previewControl.forceRedraw();
          }
-      }
-   }
+      };
 
    // ====================== 新規追加：Multi Point Mode ======================
       this.cbMultiPoint = new CheckBox(this);
-   with (this.cbMultiPoint)
+   this.cbMultiPoint.backgroundColor = this.backgroundColor;
+   this.cbMultiPoint.foregroundColor = this.foregroundColor;
+   this.cbMultiPoint.font = this.font;
+   this.cbMultiPoint.text  = 'Multi Point Mode (Curve)';
+   this.cbMultiPoint.checked = false;                    // The default is 2-point mode
+   this.cbMultiPoint.toolTip = '<b>If you check it, it will be in curve mode.</b><p>' +
+             'Off (default): When you hit two points, the start and end points, it will automatically move to the next track.<p>' +
+             'If you turn it on: you can draw a curve by placing more than 3 points.';
+   this.cbMultiPoint.onCheck = function (checked)
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      font = this.font;
-      text  = 'Multi Point Mode (Curve)';
-      checked = false;                    // The default is 2-point mode
-      toolTip = '<b>If you check it, it will be in curve mode.</b><p>' +
-                'Off (default): When you hit two points, the start and end points, it will automatically move to the next track.<p>' +
-                'If you turn it on: you can draw a curve by placing more than 3 points.';
-
-      onCheck = function (checked)
+      dialog.multiPointMode = checked;
+      if (dialog.t && dialog.t.Tracks)
       {
-         dialog.multiPointMode = checked;
-         if (dialog.t && dialog.t.Tracks)
+         if (dialog.t.Tracks.count() > 0)
          {
-            if (dialog.t.Tracks.count() > 0)
+            var currentTrack = dialog.t.Tracks.selectedTrack;
+            if (currentTrack && currentTrack.count() > 0)
             {
-               var currentTrack = dialog.t.Tracks.selectedTrack;
-               if (currentTrack && currentTrack.count() > 0)
-               {
-                  dialog.t.Tracks.addTrack();        // Create a new empty track
-                  selectedTrack = dialog.t.Tracks.selectedTrack;
-               }
+               dialog.t.Tracks.addTrack();        // Create a new empty track
+               selectedTrack = dialog.t.Tracks.selectedTrack;
             }
-            dialog.previewControl.forceRedraw();
          }
+         dialog.previewControl.forceRedraw();
       }
-   }
+   };
 
    this.btnApply = new PushButton(this);
-   with (this.btnApply)
+   this.btnApply.backgroundColor = this.backgroundColor;
+   this.btnApply.foregroundColor = this.foregroundColor;
+   this.btnApply.enabled = false;
+   this.btnApply.font = this.font;
+   this.btnApply.icon = this.scaledResource(':/icons/ok.png');
+   this.btnApply.text = T("apply");
+   this.btnApply.toolTip = T("apply_tooltip");
+   this.btnApply.onClick = function ( checked )
    {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = this.foregroundColor;
-
-      enabled = false;
-      font = this.font;
-      icon = this.scaledResource(':/icons/ok.png');
-      text = T("apply");
-      toolTip = T("apply_tooltip");
-
-      onClick = function ( checked )
+      selectedTrack = null;
+      // バッチモード中（現在ファイルが処理中）は Apply = 保存して次へ
+      var isBatchActive = (batchQueue.length > 0 &&
+                           batchIndex < batchQueue.length &&
+                           batchQueue[batchIndex].status === 'current');
+      if (isBatchActive)
       {
-         selectedTrack = null;
-         // バッチモード中（現在ファイルが処理中）は Apply = 保存して次へ
-         var isBatchActive = (batchQueue.length > 0 &&
-                              batchIndex < batchQueue.length &&
-                              batchQueue[batchIndex].status === 'current');
-         if (isBatchActive)
+         if (outputFolder.length === 0)
          {
-            if (outputFolder.length === 0)
-            {
-               new MessageBox('出力フォルダが指定されていません。',
-                  'エラー', StdIcon_Error, StdButton_Ok).execute();
-               return;
-            }
-            batchSaveAndNext(dialog);
+            new MessageBox('出力フォルダが指定されていません。',
+               'エラー', StdIcon.Error, StdButton.Ok).execute();
+            return;
          }
-         else
-         {
-            save(dialog);
-         }
+         batchSaveAndNext(dialog);
       }
-   }
+      else
+      {
+         save(dialog);
+      }
+   };
 
    this.lblProcessing = new Label(this);
-   with (this.lblProcessing)
-   {
-      backgroundColor = this.backgroundColor;
-      foregroundColor = 0xff00f0ff;
-      font = new Font("Helvetica", 10);
-      font.bold = true;
-      text = T("processing");
-      visible = false;
-   }
+   this.lblProcessing.backgroundColor = this.backgroundColor;
+   this.lblProcessing.foregroundColor = 0xff00f0ff;
+   this.lblProcessing.font = new Font("Helvetica", 10);
+   this.lblProcessing.font.bold = true;
+   this.lblProcessing.text = T("processing");
+   this.lblProcessing.visible = false;
 
 
 // Frames
    this.frame0 = new Frame(this);
-   with (this.frame0)
+   this.frame0.backgroundColor = 0xff555555;
    {
-      backgroundColor = 0xff555555;
-
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 0;
-         addSpacing(offset);
-         add(this.btnHelp);
-         addSpacing(4);
-         addStretch();
-         // toolStretch / toolLang は previewControl.buttons_Box に移動
-         add(this.toolNormal);
-         addSpacing(4);
-         add(this.toolMax);
-     }
+      sizer.margin = 0;
+      sizer.addSpacing(offset);
+      sizer.add(this.btnHelp);
+      sizer.addSpacing(4);
+      sizer.addStretch();
+      // toolStretch / toolLang は previewControl.buttons_Box に移動
+      sizer.add(this.toolNormal);
+      sizer.addSpacing(4);
+      sizer.add(this.toolMax);
+      this.frame0.sizer = sizer;
    }
    //
    this.frame1 = new Frame(this);
-   with (this.frame1)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         add(this.workspaceViewList);
-     }
+      sizer.add(this.workspaceViewList);
+      this.frame1.sizer = sizer;
    }
 
    //
    this.frame2 = new Frame(this);
-   with (this.frame2)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 0;
-         addSpacing(20);
-         add(this.btnAdd);
-         addStretch();
-     }
+      sizer.margin = 0;
+      sizer.addSpacing(20);
+      sizer.add(this.btnAdd);
+      sizer.addStretch();
+      this.frame2.sizer = sizer;
    }
    //
    this.frame4 = new Frame(this);
-   with (this.frame4)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 0;
-         addSpacing(20);
-         add(this.btnRemove);
-         addStretch();
-     }
+      sizer.margin = 0;
+      sizer.addSpacing(20);
+      sizer.add(this.btnRemove);
+      sizer.addStretch();
+      this.frame4.sizer = sizer;
    }
    this.frameEdit = new Frame(this);
-   with (this.frameEdit)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 0;
-         addSpacing(20);
-         add(this.btnEdit);
-         addStretch();
-     }
+      sizer.margin = 0;
+      sizer.addSpacing(20);
+      sizer.add(this.btnEdit);
+      sizer.addStretch();
+      this.frameEdit.sizer = sizer;
    }
    // ==================== frame5 の修正（中央揃えバージョン） ====================
 this.frame5 = new Frame(this);
-with (this.frame5)
 {
    var sizer = new VerticalSizer();
-   with (sizer)
-   {
-      addSpacing(4);
-
-      // ComboBoxを中央揃えにするためのHorizontalSizer
-      var refSizer = new HorizontalSizer();
-      with (refSizer)
-      {
-         addStretch();                    // 左側の余白
-         add(this.cmbReferences);         // ComboBox本体
-         addStretch();                    // 右側の余白
-      }
-      add(refSizer);
-
-      addSpacing(4);
-   }
+   sizer.addSpacing(4);
+   // ComboBoxを中央揃えにするためのHorizontalSizer
+   var refSizer = new HorizontalSizer();
+   refSizer.addStretch();                    // 左側の余白
+   refSizer.add(this.cmbReferences);         // ComboBox本体
+   refSizer.addStretch();                    // 右側の余白
+   sizer.add(refSizer);
+   sizer.addSpacing(4);
+   this.frame5.sizer = sizer;
 }
    //
          this.frame6 = new Frame(this);
-   with (this.frame6)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 8;
-         addSpacing(offset);
-         add(dialog.lblLineWidth);
-         addSpacing(8);
-         add(dialog.cmbLineWidth);
-         addSpacing(4);
-         add(dialog.editLineWidth);
-         addStretch();
-      }
+      sizer.margin = 8;
+      sizer.addSpacing(offset);
+      sizer.add(dialog.lblLineWidth);
+      sizer.addSpacing(8);
+      sizer.add(dialog.cmbLineWidth);
+      sizer.addSpacing(4);
+      sizer.add(dialog.editLineWidth);
+      sizer.addStretch();
+      this.frame6.sizer = sizer;
    }
    //
    this.frame7 = new Frame(this);
-   with (this.frame7)
    {
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         margin = 8;
-         var rowPv = new HorizontalSizer();
-         with (rowPv)
-         {
-            addSpacing(offset);
-            add(dialog.cbDrawMode);
-            addStretch();
-         }
-         add(rowPv);
-         addSpacing(2);
-         var rowRef = new HorizontalSizer();
-         with (rowRef)
-         {
-            addSpacing(offset);
-            add(dialog.cbShowReference);
-            addStretch();
-         }
-         add(rowRef);
-         addSpacing(2);
-         var rowMulti = new HorizontalSizer();
-         with (rowMulti)
-         {
-            addSpacing(offset);
-            add(dialog.cbMultiPoint);
-            addStretch();
-         }
-         add(rowMulti);
-     }
+      sizer.margin = 8;
+      var rowPv = new HorizontalSizer();
+      rowPv.addSpacing(offset);
+      rowPv.add(dialog.cbDrawMode);
+      rowPv.addStretch();
+      sizer.add(rowPv);
+      sizer.addSpacing(2);
+      var rowRef = new HorizontalSizer();
+      rowRef.addSpacing(offset);
+      rowRef.add(dialog.cbShowReference);
+      rowRef.addStretch();
+      sizer.add(rowRef);
+      sizer.addSpacing(2);
+      var rowMulti = new HorizontalSizer();
+      rowMulti.addSpacing(offset);
+      rowMulti.add(dialog.cbMultiPoint);
+      rowMulti.addStretch();
+      sizer.add(rowMulti);
+      this.frame7.sizer = sizer;
    }
    //
    this.frame8 = new Frame(this);
-   with (this.frame8)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 0;
-         addSpacing(20);
-         add(this.btnApply);
-         addSpacing(8);
-         add(this.lblProcessing);
-         addStretch();
-     }
+      sizer.margin = 0;
+      sizer.addSpacing(20);
+      sizer.add(this.btnApply);
+      sizer.addSpacing(8);
+      sizer.add(this.lblProcessing);
+      sizer.addStretch();
+      this.frame8.sizer = sizer;
    }
 
    //
 
       this.frameBatchQueue = new Frame(this);
-   with (this.frameBatchQueue)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 8;
-         addSpacing(offset);
-         add(dialog.btnQueueFiles);
-         addStretch();
-      }
+      sizer.margin = 8;
+      sizer.addSpacing(offset);
+      sizer.add(dialog.btnQueueFiles);
+      sizer.addStretch();
+      this.frameBatchQueue.sizer = sizer;
    }
 
    this.frameBatchOutput = new Frame(this);
-   with (this.frameBatchOutput)
    {
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         // frame4 (Undo) と同じスタイル: margin=0 + addSpacing(offset+8)=20
-         // これで btnOutputFolder の先頭位置が btnQueueFiles / 追加・取消しと揃う
-         margin = 0;
-         var btnOutputSizer = new HorizontalSizer();
-         with (btnOutputSizer)
-         {
-            addSpacing(offset + 8);
-            add(dialog.btnOutputFolder);
-            addStretch();
-         }
-         add(btnOutputSizer);
-         addSpacing(4);
-         var lblOutputSizer = new HorizontalSizer();
-         with (lblOutputSizer)
-         {
-            addSpacing(offset + 8);
-            add(dialog.lblOutputPath);
-            addStretch();
-         }
-         add(lblOutputSizer);
-      }
+      // frame4 (Undo) と同じスタイル: margin=0 + addSpacing(offset+8)=20
+      // これで btnOutputFolder の先頭位置が btnQueueFiles / 追加・取消しと揃う
+      sizer.margin = 0;
+      var btnOutputSizer = new HorizontalSizer();
+      btnOutputSizer.addSpacing(offset + 8);
+      btnOutputSizer.add(dialog.btnOutputFolder);
+      btnOutputSizer.addStretch();
+      sizer.add(btnOutputSizer);
+      sizer.addSpacing(4);
+      var lblOutputSizer = new HorizontalSizer();
+      lblOutputSizer.addSpacing(offset + 8);
+      lblOutputSizer.add(dialog.lblOutputPath);
+      lblOutputSizer.addStretch();
+      sizer.add(lblOutputSizer);
+      this.frameBatchOutput.sizer = sizer;
    }
 
    this.frameBatchSuffix = new Frame(this);
-   with (this.frameBatchSuffix)
    {
       var sizer = new HorizontalSizer();
-      with (sizer)
-      {
-         margin = 8;
-         addSpacing(offset);
-         add(dialog.lblSuffix);
-         addSpacing(8);
-         add(dialog.editSuffix);
-         addStretch();
-      }
+      sizer.margin = 8;
+      sizer.addSpacing(offset);
+      sizer.add(dialog.lblSuffix);
+      sizer.addSpacing(8);
+      sizer.add(dialog.editSuffix);
+      sizer.addStretch();
+      this.frameBatchSuffix.sizer = sizer;
    }
 
    this.frameBatchList = new Frame(this);
-   with (this.frameBatchList)
    {
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         margin = 4;
-         add(dialog.batchList);
-         addSpacing(4);
-         add(dialog.lblBatchProgress);
-      }
+      sizer.margin = 4;
+      sizer.add(dialog.batchList);
+      sizer.addSpacing(4);
+      sizer.add(dialog.lblBatchProgress);
+      this.frameBatchList.sizer = sizer;
    }
 
    this.frameBatchButtons = new Frame(this);
-   with (this.frameBatchButtons)
    {
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         margin = 8;
-         add(dialog.btnSaveNext);
-         addSpacing(6);
-         add(dialog.btnSkipNext);
-         addSpacing(6);
-         add(dialog.btnSkipNoSave);
-         addSpacing(6);
-         add(dialog.btnCancelBatch);
-      }
+      sizer.margin = 8;
+      sizer.add(dialog.btnSaveNext);
+      sizer.addSpacing(6);
+      sizer.add(dialog.btnSkipNext);
+      sizer.addSpacing(6);
+      sizer.add(dialog.btnSkipNoSave);
+      sizer.addSpacing(6);
+      sizer.add(dialog.btnCancelBatch);
+      this.frameBatchButtons.sizer = sizer;
    }
 
 
   // 上部エリア
       this.frameTop = new Frame(this);
-   with (this.frameTop)
    {
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         margin = 4;
-         add(this.frame1);           // ドロップダウンリスト
-         addSpacing(8);
-         add(this.frame5);           // Reference ComboBox
-         addSpacing(8);
-         add(this.frame2);           // Add
-         addSpacing(2);
-         add(this.frame4);           // Undo
-         addSpacing(2);
-         add(this.frameEdit);        // Edit
-         addSpacing(2);
-         add(this.frame8);           // Apply
-         addSpacing(4);
-         add(this.frame6);           // Line width
-         addSpacing(4);
-         add(this.frame7);           // Preview / Reference / Multi Point
-         addSpacing(8);
-         add(this.frameBatchQueue);
-         addSpacing(2);
-         add(this.frameBatchOutput);
-         addSpacing(4);
-         add(this.frameBatchSuffix);
-         addSpacing(4);
-         add(this.frameBatchList);
-         addSpacing(4);
-         add(this.frameBatchButtons);
-         addStretch();
-      }
+      sizer.margin = 4;
+      sizer.add(this.frame1);           // ドロップダウンリスト
+      sizer.addSpacing(8);
+      sizer.add(this.frame5);           // Reference ComboBox
+      sizer.addSpacing(8);
+      sizer.add(this.frame2);           // Add
+      sizer.addSpacing(2);
+      sizer.add(this.frame4);           // Undo
+      sizer.addSpacing(2);
+      sizer.add(this.frameEdit);        // Edit
+      sizer.addSpacing(2);
+      sizer.add(this.frame8);           // Apply
+      sizer.addSpacing(4);
+      sizer.add(this.frame6);           // Line width
+      sizer.addSpacing(4);
+      sizer.add(this.frame7);           // Preview / Reference / Multi Point
+      sizer.addSpacing(8);
+      sizer.add(this.frameBatchQueue);
+      sizer.addSpacing(2);
+      sizer.add(this.frameBatchOutput);
+      sizer.addSpacing(4);
+      sizer.add(this.frameBatchSuffix);
+      sizer.addSpacing(4);
+      sizer.add(this.frameBatchList);
+      sizer.addSpacing(4);
+      sizer.add(this.frameBatchButtons);
+      sizer.addStretch();
+      this.frameTop.sizer = sizer;
    }
 
    // 下部エリア（常に下に固定）
    this.frameBottom = new Frame(this);
-   with (this.frameBottom)
    {
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         margin = 4;
-         add(this.lblCopyright);
-      }
+      sizer.margin = 4;
+      sizer.add(this.lblCopyright);
+      this.frameBottom.sizer = sizer;
    }
 
    //
    this.leftFrame = new Frame(this);
-   with (this.leftFrame)
+   this.leftFrame.setScaledFixedWidth(200);
    {
-      setScaledFixedWidth(200);
-
       var sizer = new VerticalSizer();
-      with (sizer)
-      {
-         add(this.frame0);
-         add(this.frameTop);
-         add(this.frameBottom);
-      }
+      sizer.add(this.frame0);
+      sizer.add(this.frameTop);
+      sizer.add(this.frameBottom);
+      this.leftFrame.sizer = sizer;
    }
    //
    this.rightFrame = new Frame(this);
-   with (this.rightFrame)
+   this.rightFrame.backgroundColor = 0xff000000;
    {
-      backgroundColor = 0xff000000;
-      sizer = new VerticalSizer();
+      var sizer = new VerticalSizer();
       sizer.margin = 0;
       sizer.spacing = 0;
-      sizer.add(this.previewControl)
+      sizer.add(this.previewControl);
       sizer.add(this.richTextBox);
+      this.rightFrame.sizer = sizer;
    }
    //
    this.fullFrame = new Frame(this);
-   with (this.fullFrame )
+   this.fullFrame.setScaledMinWidth(1200);
+   this.fullFrame.setScaledMinHeight(800);
    {
-      setScaledMinWidth(1200);
-      setScaledMinHeight(800);
-      sizer = new HorizontalSizer();
+      var sizer = new HorizontalSizer();
       sizer.add(this.leftFrame);
       sizer.add(this.rightFrame);
+      this.fullFrame.sizer = sizer;
    }
    //
    this.sizer = new Sizer();
@@ -2745,7 +2510,8 @@ with (this.frame5)
    // ====================================================================
 
    this.adjustToContents();
-   processEvents();
+   CoreApplication.processEvents();
+   }
 }
 // ====================== Batch processing function ======================
 
@@ -2797,7 +2563,7 @@ function batchTryStart(dialog)
          dialog.t = null;
          if (!oldWnd.isNull && !oldWnd.isClosed)
             oldWnd.forceClose();
-         processEvents();
+         CoreApplication.processEvents();
       }
       catch (ex) { /* ignore */ }
    }
@@ -2820,7 +2586,7 @@ function batchLoadNext(dialog)
       dialog.btnSkipNoSave.enabled  = false;
       dialog.btnCancelBatch.enabled = false;
       new MessageBox(T("batch_cancel_msg"),
-         T("batch_cancel_title"), StdIcon_Information, StdButton_Ok).execute();
+         T("batch_cancel_title"), StdIcon.Information, StdButton.Ok).execute();
       return;
    }
 
@@ -2839,7 +2605,7 @@ function batchLoadNext(dialog)
    {
       // All completed
       new MessageBox(T("batch_done"),
-         T("batch_done_title"), StdIcon_Information, StdButton_Ok).execute();
+         T("batch_done_title"), StdIcon.Information, StdButton.Ok).execute();
       dialog.btnSaveNext.enabled    = false;
       dialog.btnSkipNext.enabled    = false;
       dialog.btnSkipNoSave.enabled  = false;
@@ -2865,7 +2631,7 @@ function batchLoadNext(dialog)
          dialog.t = null;
          if (!oldWnd.isNull && !oldWnd.isClosed)
             oldWnd.forceClose();
-         processEvents();
+         CoreApplication.processEvents();
       }
 
       var openedWindows = ImageWindow.open(filePath);
@@ -2879,7 +2645,7 @@ function batchLoadNext(dialog)
       // Waiting for display
       for (var i = 0; i < 60; i++)
       {
-         processEvents();
+         CoreApplication.processEvents();
          if (!targetWnd.isNull && !targetWnd.isClosed &&
              !targetWnd.mainView.isNull && targetWnd.visible)
             break;
@@ -2906,7 +2672,7 @@ function batchLoadNext(dialog)
 
       // onItemSelected などの遅延イベントをフラッシュし、その後トラックをリセットして
       // 確実に1つの空トラックを選択状態にする。
-      processEvents();
+      CoreApplication.processEvents();
       if (dialog.t && dialog.t.Tracks)
       {
          dialog.t.Tracks.tracks = [];
@@ -2920,7 +2686,7 @@ function batchLoadNext(dialog)
    {
       Console.writeln('Batch: failed to open ' + filePath + '\n' + ex);
       new MessageBox('Failed to open file:\n' + filePath + '\n\n' + (ex.message || ex),
-         'エラー', StdIcon_Error, StdButton_Ok).execute();
+         'エラー', StdIcon.Error, StdButton.Ok).execute();
       // Skip the error file and go to the next
       batchQueue[batchIndex].status = 'skipped';
       batchIndex++;
@@ -2933,7 +2699,7 @@ function batchSaveFile(dialog, doApply)
    if (outputFolder.length === 0)
    {
       new MessageBox('出力フォルダが指定されていません。',
-         'エラー', StdIcon_Error, StdButton_Ok).execute();
+         'エラー', StdIcon.Error, StdButton.Ok).execute();
       return false;
    }
 
@@ -2957,7 +2723,7 @@ function batchSaveFile(dialog, doApply)
       {
          // Apply the track
          save(dialog);
-         processEvents();
+         CoreApplication.processEvents();
 
          // Export the applied image to a file
          var view = dialog.t.view;
@@ -2995,7 +2761,7 @@ function batchSaveFile(dialog, doApply)
    {
       Console.writeln('Batch: save failed\n' + ex);
       new MessageBox('Save failed:\n' + (ex.message || ex),
-         'エラー', StdIcon_Error, StdButton_Ok).execute();
+         'エラー', StdIcon.Error, StdButton.Ok).execute();
       return false;
    }
 }
@@ -3012,7 +2778,7 @@ function batchSaveAndNext(dialog)
 
    batchIndex++;
    batchUpdateList(dialog);
-   processEvents();
+   CoreApplication.processEvents();
    batchLoadNext(dialog);
 }
 
@@ -3028,7 +2794,7 @@ function batchSkipAndNext(dialog)
 
    batchIndex++;
    batchUpdateList(dialog);
-   processEvents();
+   CoreApplication.processEvents();
    batchLoadNext(dialog);
 }
 
@@ -3040,7 +2806,7 @@ function batchSkipNoCopy(dialog)
    batchQueue[batchIndex].status = 'skipped';
    batchIndex++;
    batchUpdateList(dialog);
-   processEvents();
+   CoreApplication.processEvents();
    batchLoadNext(dialog);
 }
 // =================== End of the batch processing function ===================
@@ -3070,7 +2836,7 @@ function save(dialog)
    {
       dialog.btnApply.visible = false;
       dialog.lblProcessing.visible = true;
-      processEvents();
+      CoreApplication.processEvents();
 
       var mask = createMask(dialog);
 
@@ -3107,7 +2873,7 @@ function save(dialog)
       dialog.btnApply.enabled  = false;
       dialog.btnRemove.enabled = false;
       dialog.btnEdit.enabled   = false;
-      processEvents();
+      CoreApplication.processEvents();
       dialog.previewControl.forceRedraw();
    }
    catch (ex)
@@ -3135,7 +2901,7 @@ function createMask(dialog)
 
    var maskWin = new ImageWindow(dialog.t.bitmap.width, dialog.t.bitmap.height,
       1, 32, true, false, dialog.t.maskId);
-   maskWin.mainView.beginProcess(UndoFlag_NoSwapFile);
+   maskWin.mainView.beginProcess(UndoFlag.NoSwapFile);
    maskWin.mainView.image.apply(image);
    maskWin.mainView.endProcess();
 
@@ -3217,7 +2983,7 @@ function viewsSetup(dialog, Window, previewControl)
          gc2.end();
          // Use Graphics to directly synthesise masks into resultBitmap
          var gc3 = new Graphics(resultBitmap);
-         gc3.pen = new Pen(0xff000000, dialog.lastValidLineWidth, PenStyle_Solid, PenCap_Round);
+         gc3.pen = new Pen(0xff000000, dialog.lastValidLineWidth, PenStyle.Solid, PenCap_Round);
          gc3.brush = new Brush(0xff000000);
          var curve = [];
          for (var ti = 0; ti < this.Tracks.tracks.length; ti++)
@@ -3225,7 +2991,7 @@ function viewsSetup(dialog, Window, previewControl)
             var pts = getCurvePoints(this.Tracks.tracks[ti].trackPoints);
             if (pts.length > 0)
             {
-               gc3.pen = new Pen(0xff000000, dialog.lastValidLineWidth, PenStyle_Solid, PenCap_Round);
+               gc3.pen = new Pen(0xff000000, dialog.lastValidLineWidth, PenStyle.Solid, PenCap_Round);
                gc3.drawPolyline(pts);
             }
          }
@@ -3263,7 +3029,7 @@ function viewsSetup(dialog, Window, previewControl)
          var maskBitmap = new Bitmap(w, h);
          var gm = new Graphics(maskBitmap);
          gm.fillRect(new Rect(0, 0, w, h), new Brush(0xff000000));
-         gm.pen = new Pen(0xffffffff, dialog.lastValidLineWidth, PenStyle_Solid, PenCap_Round);
+         gm.pen = new Pen(0xffffffff, dialog.lastValidLineWidth, PenStyle.Solid, PenCap_Round);
          for (var ti = 0; ti < this.Tracks.tracks.length; ti++)
          {
             var pts = getCurvePoints(this.Tracks.tracks[ti].trackPoints);
@@ -3454,7 +3220,7 @@ function copyView(view, newName)
                              view.image.isColor,
                              newName);
    win.hide();
-   win.mainView.beginProcess(UndoFlag_NoSwapFile);
+   win.mainView.beginProcess(UndoFlag.NoSwapFile);
    win.mainView.image.apply(view.image);
    win.mainView.endProcess();
    return win.mainView;
@@ -3470,7 +3236,7 @@ function copyWindow( window, newName)
                              view.image.isColor,
                              newName);
    win.hide();
-   win.mainView.beginProcess(UndoFlag_NoSwapFile);
+   win.mainView.beginProcess(UndoFlag.NoSwapFile);
    win.mainView.image.apply(view.image);
    win.mainView.endProcess();
    return win;
@@ -3523,10 +3289,10 @@ function GetPrimaryScreenDimensions(dialog)
             var k = a[0];
             var v = a[1];
 
-            if (k == 'MainWindow\\Geometry\\Top')          { y = v.toInt(); n++; }
-            else if (k == 'MainWindow\\Geometry\\Left')    { x = v.toInt(); n++; }
-            else if (k == 'MainWindow\\Geometry\\DesktopWidth')  { w = v.toInt(); n++; }
-            else if (k == 'MainWindow\\Geometry\\DesktopHeight') { h = v.toInt(); n++; }
+            if (k == 'MainWindow\\Geometry\\Top')          { y = parseInt(v, 10); n++; }
+            else if (k == 'MainWindow\\Geometry\\Left')    { x = parseInt(v, 10); n++; }
+            else if (k == 'MainWindow\\Geometry\\DesktopWidth')  { w = parseInt(v, 10); n++; }
+            else if (k == 'MainWindow\\Geometry\\DesktopHeight') { h = parseInt(v, 10); n++; }
 
             if (n == 4) break;
          }
@@ -3746,17 +3512,43 @@ function ApplyHistogram(view)
 
 /*
  * Preview Control
+ *
+ * This file is part of the AnnotateImage script
+ *
  * Copyright (C) 2013-2020, Andres del Pozo
  * Contributions (C) 2019-2020, Juan Conejero (PTeam)
  * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Note: This PreviewControl has been substantially modified from the original
+ * for use in DeSatellite (Copyright (C) 2026, Kidani Bunkei).
  */
 
-#include <pjsr/ButtonCodes.jsh>
-#include <pjsr/StdCursor.jsh>
-function PreviewControl( parent )
+class PreviewControl extends Frame
 {
-   this.__base__ = Frame;
-   this.__base__( parent );
+   constructor( parent )
+   {
+      super( parent );
 
    // ====================== ルーペ機能の状態 ======================
    this.loupeEnabled       = false;
@@ -3812,7 +3604,6 @@ function PreviewControl( parent )
 
       this.zoom = newZoom;
       this.scaledImage = null;
-      gc( true );
 
       if ( this.zoom > 0 )
       {
@@ -3841,7 +3632,55 @@ function PreviewControl( parent )
       if ( this.scrollbox.maxVerticalScrollPosition > 0 && imgy != null )
          this.scrollbox.verticalScrollPosition = imgy*this.scale - refPoint.y;
 
+      // ズームが変わるたびにつまみの最小サイズを再計算する
+      this._updateScrollbarHandleSize();
+
       this.scrollbox.viewport.update();
+   };
+
+   // ズームに応じてスクロールバーのつまみ最小サイズを動的に更新する。
+   //
+   // 【方針】
+   //   スクロール範囲 (maxScroll) が大きい = 高ズーム になるほど、Qt が自動計算する
+   //   つまみの自然サイズ (= viewport / (viewport + maxScroll) × track) は極小になる。
+   //   これを防ぐため、maxScroll/viewport の比の対数に HANDLE_SCALE を掛けた最小サイズを設定する。
+   //
+   //   min_px = FLOOR × HANDLE_SCALE × (1 + ln(1 + maxScroll/viewport))
+   //
+   //   HANDLE_SCALE を大きくするほどつまみが大きくなり、端から端へのポインター移動量が
+   //   短くなる (= 同じ移動でより多く画面がスクロールされる)。
+   //   つまみが track 長を超える場合は Qt が track 長にクリップする。この状態では
+   //   ドラッグによるスクロールはできないが、矢印ボタンや track クリックは引き続き機能する。
+   //
+   //   例 (viewport = 1200px、4000px 幅の画像、HANDLE_SCALE = 12):
+   //     スクロール不要 (縮小表示) → min = FLOOR_PX = 24 px
+   //     zoom 1:1  → maxScroll = 2800  → ratio = 2.33  → min ≈  634 px  → travel ≈ 566 px
+   //     zoom 2:1  → maxScroll = 6800  → ratio = 5.67  → min ≈  834 px  → travel ≈ 366 px
+   //     zoom 4:1  → maxScroll = 14800 → ratio = 12.3  → min ≈ 1034 px  → travel ≈ 166 px
+   this._updateScrollbarHandleSize = function()
+   {
+      var FLOOR_PX     = 24;   // 絶対最小値 (論理ピクセル) ─ つまみを必ず掴める大きさに保つ
+      var CEIL_PX      = 120;  // 上限値の基準値 (実効上限 = CEIL_PX × HANDLE_SCALE)
+      var HANDLE_SCALE = 12;   // つまみサイズの倍率
+                               // 大きくするほどつまみが太くなり、端から端への移動が短くなる
+
+      // ratio が大きいほど (高ズームほど) 最小サイズを対数的に増やし、
+      // さらに HANDLE_SCALE を掛けてスクロール感度を調整する
+      var self = this;
+      function calcMin(viewportPx, maxScroll)
+      {
+         if (maxScroll <= 0) return FLOOR_PX;
+         var ratio = maxScroll / Math.max(viewportPx, 1);
+         return Math.round(Math.min(CEIL_PX * HANDLE_SCALE,
+                                    FLOOR_PX * HANDLE_SCALE * (1 + Math.log(1 + ratio))));
+      }
+
+      var minW = calcMin(self.scrollbox.viewport.width,  self.scrollbox.maxHorizontalScrollPosition);
+      var minH = calcMin(self.scrollbox.viewport.height, self.scrollbox.maxVerticalScrollPosition);
+
+      self.scrollbox.styleSheet =
+         "QScrollBar::handle:horizontal { min-width:  " + minW + "px; }" +
+         "QScrollBar::handle:vertical   { min-height: " + minH + "px; }";
    };
 
    this.zoomIn_Button = new ToolButton( this );
@@ -3916,13 +3755,13 @@ function PreviewControl( parent )
    this.scrollbox = new ScrollBox( this );
    this.scrollbox.autoScroll = true;
    this.scrollbox.tracking = true;
-   this.scrollbox.cursor = new Cursor( StdCursor_Arrow );
-   // 高ズーム時にスクロールバーのつまみが極端に小さくなって掴みにくいのを防ぐため、
-   // つまみ (handle) に最小サイズを設定する。Qt のスタイルシート経由。
-   // 端まで動かすのに必要なポインター移動量も短くする。
+   this.scrollbox.cursor = new Cursor( StdCursor.Arrow );
+   // スクロールバーつまみの最小サイズ初期値。
+   // UpdateZoom が呼ばれるたびに _updateScrollbarHandleSize() で動的に更新される。
+   // ※ Qt スタイルシートの px は論理ピクセル単位のため scaledStyleSheet は不要。
    this.scrollbox.styleSheet =
-      "QScrollBar::handle:horizontal { min-width: 300px; }" +
-      "QScrollBar::handle:vertical   { min-height: 300px; }";
+      "QScrollBar::handle:horizontal { min-width:  24px; }" +
+      "QScrollBar::handle:vertical   { min-height: 24px; }";
 
 
 
@@ -3957,7 +3796,7 @@ function PreviewControl( parent )
       let preview = this.parent.parent;
       // Ctrl/⌘ + ホイール (またはトラックパッドのピンチジェスチャ) のみズーム。
       // 修飾キーなしのホイールは誤操作防止のため無視する。
-      if (modifiers & KeyModifier_Control)
+      if (modifiers & KeyModifier.Control)
          preview.UpdateZoom( preview.zoom + ((delta > 0) ? -1 : 1), new Point( x, y ) );
    };
 
@@ -3980,7 +3819,7 @@ function PreviewControl( parent )
          }
       }
 
-      this.cursor = new Cursor( StdCursor_ClosedHand );
+      this.cursor = new Cursor( StdCursor.ClosedHand );
    };
 
    this.transform = function(x, y, preview)
@@ -4043,7 +3882,7 @@ function PreviewControl( parent )
             if(preview.onCustomMouseMove)
             {
                var p =  preview.transform(x, y, preview);
-               preview.onCustomMouseMove.call(this, -1, -1, MouseButton_Unknown, KeyModifier_Control );
+               preview.onCustomMouseMove.call(this, -1, -1, MouseButton.Unknown, KeyModifier.Control );
             }
             preview.Xval_Label.text = format( "%8.2f", coordPx.x );
             preview.Yval_Label.text = format( "%8.2f", coordPx.y );
@@ -4061,16 +3900,16 @@ function PreviewControl( parent )
    this.scrollbox.viewport.onMouseRelease = function( x, y, button, buttonState, modifiers )
    {
       let preview = this.parent.parent;
-      if ( preview.scrolling && button == MouseButton_Left )
+      if ( preview.scrolling && button == MouseButton.Left )
       {
          preview.scrollbox.horizontalScrollPosition = preview.scrolling.orgScroll.x - (x - preview.scrolling.orgCursor.x);
          preview.scrollbox.verticalScrollPosition = preview.scrolling.orgScroll.y - (y - preview.scrolling.orgCursor.y);
          preview.scrolling = null;
-         this.cursor = new Cursor( StdCursor_Arrow  );
+         this.cursor = new Cursor( StdCursor.Arrow  );
       }
       else
       {
-         this.cursor = new Cursor( StdCursor_Arrow  );
+         this.cursor = new Cursor( StdCursor.Arrow  );
       }
 
       if ( preview.onMouseRelease )
@@ -4113,12 +3952,12 @@ function PreviewControl( parent )
       let preview = this.parent.parent;
       if (!preview.scaledImage || !preview.image)
       {
-         let graphics = new VectorGraphics( this );
+         let graphics = new Graphics( this );
          graphics.fillRect( x0, y0, x1, y1, new Brush( 0xff202020 ) );
          graphics.end();
          return;
       }
-      let graphics = new VectorGraphics( this );
+      let graphics = new Graphics( this );
 
       graphics.fillRect( x0, y0, x1, y1, new Brush( 0xff202020 ) );
 
@@ -4218,12 +4057,10 @@ function PreviewControl( parent )
    this.metadata = { width: 100, height: 100 };  // ← A dummy
    this.scaledImage = { width: 100, height: 100 };  // ← A dummy
    this.imageRect = new Rect(0, 0, 100, 100);
+   }
 }
-PreviewControl.prototype = new Frame;
 
 
-
-showDialog.prototype = new Dialog;
 
 function updateViewLists(dialog)
 {
